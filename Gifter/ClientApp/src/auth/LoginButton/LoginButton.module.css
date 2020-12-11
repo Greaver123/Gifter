@@ -1,0 +1,13 @@
+.LoginButton {
+  display: inline-block;
+  border: 1px solid black;
+  background-color: white;
+  padding: 10px;
+  margin: 10px;
+  width: 100px;
+  box-sizing: border-box;
+}
+
+.LoginButton:hover {
+  background-color: gainsboro;
+}
