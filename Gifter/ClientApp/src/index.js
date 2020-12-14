@@ -14,7 +14,9 @@ ReactDOM.render(
     <Auth0Provider
       domain="giftter-dev.eu.auth0.com"
       clientId="aOyDaNo4il105Kub3qqUys8bGyvydAQQ"
+      audience="https://giftter-dev.com"
       redirectUri={window.location.origin}
+      //scope
     >
       <App />
     </Auth0Provider>
