@@ -4,6 +4,6 @@
     {
         public int Id { get; set; }
 
-        public Constants.EventType OccasionType { get; set; }
+        public Constants.EventType Type { get; set; }
     }
 }

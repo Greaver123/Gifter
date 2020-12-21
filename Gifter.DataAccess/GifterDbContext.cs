@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Gifter.DataAccess
 {
-    public class GifterDbContext :DbContext
+    public class GifterDbContext : DbContext
     {
-        public GifterDbContext(DbContextOptions<GifterDbContext> options): base(options)
+        public GifterDbContext(DbContextOptions<GifterDbContext> options) : base(options)
         {
 
         }
@@ -27,5 +27,35 @@ namespace Gifter.DataAccess
         public DbSet<Event> Events { get; set; }
 
         public DbSet<EventType> EventTypes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Participant>().HasKey(p => new { p.UserId, p.GriftGroupId });
+
+            modelBuilder.Entity<Participant>()
+                .HasOne(p=>p.User)
+                .WithMany(u => u.Participants)
+                .HasForeignKey(p=>p.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+
+            modelBuilder.Entity<Participant>()
+                .HasOne(p=>p.GiftGroup)
+                .WithMany(u => u.Participants)
+                .HasForeignKey(u => u.GriftGroupId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Reservation>()
+                .HasOne(r=>r.User)
+                .WithMany(u => u.Reservations)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Gift)
+            .WithOne(g => g.Reservation)
+            .OnDelete(DeleteBehavior.NoAction);
+        }
     }
 }

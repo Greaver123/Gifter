@@ -29,7 +29,7 @@ namespace Gifter
         {
 
             services.AddControllersWithViews();
-            services.AddDbContext<GifterDbContext>(options => options.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Test)"));
+            services.AddDbContext<GifterDbContext>(options => options.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Test"));
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
