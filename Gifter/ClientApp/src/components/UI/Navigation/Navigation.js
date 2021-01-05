@@ -19,7 +19,6 @@ const Navigation = () => {
           Home
         </NavLink>
         <NavLink to="/fetch-data">Fetch Data</NavLink>
-        <NavLink to="/Counter">Counter</NavLink>
       </div>
       <div>{!isAuthenticated ? <LoginButton /> : <LogoutButton />}</div>
     </div>
