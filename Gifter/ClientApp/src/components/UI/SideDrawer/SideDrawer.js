@@ -1,25 +1,29 @@
 import React from 'react';
 import MenuBurger from './MenuBurger/MenuBurger';
 import Navigation from '../Navigation/Navigation';
-import LoginButton from '../../../auth/LoginButton/LoginButton';
-import LogoutButton from '../../../auth/LogoutButton/LogoutButton';
+
 import classes from './SideDrawer.module.css';
-import { useAuth0 } from '@auth0/auth0-react';
+import { NavLink } from 'react-router-dom';
 
 const SideDrawer = (props) => {
-  const { isAuthenticated } = useAuth0();
-
-  let attachedClasses = [classes.SideDrawer, classes.Closed];
+  let attachedClasses = [classes.Closed];
   if (props.opened) {
-    attachedClasses = [classes.SideDrawer, classes.Open];
+    attachedClasses = [classes.Open];
   }
 
   return (
-    <div className={classes.Toolbar}>
+    <div className={classes.SideDrawer}>
       <MenuBurger clicked={props.clicked} />
-      <div>{!isAuthenticated ? <LoginButton /> : <LogoutButton />}</div>
       <div className={attachedClasses.join(' ')} onClick={props.clicked}>
-        <Navigation />
+        <NavLink to="/" exact>
+          Home
+        </NavLink>
+        <NavLink to="/eventcalendar">Event Calendar</NavLink>
+        <NavLink to="/giftgroups">Gift Groups</NavLink>
+        <NavLink to="/wishlist">WishList</NavLink>
+        <NavLink to="/mygifts">My gifts</NavLink>
+        <NavLink to="/myideas">My Ideas</NavLink>
+        <NavLink to="/profile">Profile</NavLink>
       </div>
     </div>
   );

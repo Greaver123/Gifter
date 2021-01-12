@@ -1,21 +1,12 @@
 import React, { Component } from 'react';
 import { Container } from 'reactstrap';
-import SideDrawer from '../SideDrawer/SideDrawer';
 import { withAuth0 } from '@auth0/auth0-react';
+import SideDrawer from '../SideDrawer/SideDrawer';
+import Toolbar from '../Toolbar/Toolbar';
 
 class Layout extends Component {
-  state = {
-    sideDrawerOpened: false,
-  };
-
-  SideDrawerClicked = () => {
-    this.setState((prevState) => {
-      return { sideDrawerOpened: !prevState.sideDrawerOpened };
-    });
-  };
-
   render() {
-    const { isAuthenticated, isLoading } = this.props.auth0;
+    const { isLoading } = this.props.auth0;
 
     if (isLoading) {
       return (
@@ -25,10 +16,7 @@ class Layout extends Component {
 
     return (
       <div>
-        <SideDrawer
-          opened={this.state.sideDrawerOpened}
-          clicked={this.SideDrawerClicked}
-        ></SideDrawer>
+        <Toolbar />
         <Container>{this.props.children}</Container>
       </div>
     );
