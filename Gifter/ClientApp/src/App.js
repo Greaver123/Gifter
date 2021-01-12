@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Route, Switch } from 'react-router';
-import { Layout } from './components/UI/Layout/Layout';
-import { Home } from './components/Views/Home/Home';
+import Layout from './components/UI/Layout/Layout';
+import Home from './components/Views/Home/Home';
 import FetchData from './components/FetchData';
 import GiftGroups from './components/Views/GiftGroups/GiftGroups';
 import WishList from './components/Views/WishList/WishList';

@@ -6,27 +6,17 @@ import LogoutButton from '../../../auth/LogoutButton/LogoutButton';
 import { useAuth0 } from '@auth0/auth0-react';
 
 const Navigation = () => {
-  const { isAuthenticated, isLoading } = useAuth0();
-
-  if (isLoading) {
-    return <h2 style={{ textAlign: 'center', margin: '20px' }}>Loading...</h2>;
-  }
-
   return (
     <div className={classes.Navigation}>
-      <div>
-        <NavLink to="/" exact>
-          Home
-        </NavLink>
-        <NavLink to="/eventcalendar">Event Calendar</NavLink>
-        <NavLink to="/giftgroups">Gift Groups</NavLink>
-        <NavLink to="/wishlist">WishList</NavLink>
-        <NavLink to="/mygifts">My gifts</NavLink>
-        <NavLink to="/myideas">My Ideas</NavLink>
-        <NavLink to="/profile">Profile</NavLink>
-        {/* <NavLink to="/fetch-data">Fetch Data</NavLink> */}
-      </div>
-      <div>{!isAuthenticated ? <LoginButton /> : <LogoutButton />}</div>
+      <NavLink to="/" exact>
+        Home
+      </NavLink>
+      <NavLink to="/eventcalendar">Event Calendar</NavLink>
+      <NavLink to="/giftgroups">Gift Groups</NavLink>
+      <NavLink to="/wishlist">WishList</NavLink>
+      <NavLink to="/mygifts">My gifts</NavLink>
+      <NavLink to="/myideas">My Ideas</NavLink>
+      <NavLink to="/profile">Profile</NavLink>
     </div>
   );
 };

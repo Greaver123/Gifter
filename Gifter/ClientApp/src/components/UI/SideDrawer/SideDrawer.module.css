@@ -1,0 +1,28 @@
+.SideDrawer {
+  position: fixed;
+  /* top: 0;
+  left: 0; */
+  background-color: whitesmoke;
+  width: 100%;
+  height: 100%;
+}
+.Toolbar {
+  background-color: whitesmoke;
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.Open {
+  display: block;
+}
+
+.Closed {
+  display: none;
+}
+
+@media (min-width: 500px) {
+  .SideDrawer {
+    display: none;
+  }
+}
