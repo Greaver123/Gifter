@@ -1,0 +1,20 @@
+.AuthButton {
+  box-sizing: border-box;
+  border-radius: 10px;
+  background-color: rgb(58, 143, 255);
+  color: white;
+  border: none;
+  margin: 10px;
+  font-size: 26px;
+  width: 100px;
+}
+
+.AuthButton:hover {
+  background-color: gainsboro;
+}
+
+@media screen and (min-width: 700px) {
+  .AuthButton {
+    font-size: initial;
+  }
+}

@@ -1,8 +1,6 @@
 import React from 'react';
 import classes from './Navigation.module.css';
 import { NavLink } from 'react-router-dom';
-import LoginButton from '../../../auth/LoginButton/LoginButton';
-import LogoutButton from '../../../auth/LogoutButton/LogoutButton';
 import { useAuth0 } from '@auth0/auth0-react';
 
 const Navigation = () => {

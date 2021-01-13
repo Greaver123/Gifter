@@ -1,7 +1,8 @@
 .Toolbar {
   width: 100%;
   background-color: whitesmoke;
-  height: 75px;
+  height: auto;
+  /* max-height: 75px; */
   display: flex;
   justify-content: space-between;
 }

@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import SideDrawer from '../SideDrawer/SideDrawer';
 import classes from './Toolbar.module.css';
 import { withAuth0 } from '@auth0/auth0-react';
-import LoginButton from '../../../auth/LoginButton/LoginButton';
-import LogoutButton from '../../../auth/LogoutButton/LogoutButton';
+import LoginButton from '../../../auth/Button/LoginButton/LoginButton';
+import LogoutButton from '../../../auth/Button/LogoutButton/LogoutButton';
 import Navigation from '../Navigation/Navigation';
 class Toolbar extends Component {
   state = {

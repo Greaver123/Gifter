@@ -1,5 +1,6 @@
 import React from 'react';
 import classes from './LogoutButton.module.css';
+import baseClasses from '../AuthButton.module.css';
 import { useAuth0 } from '@auth0/auth0-react';
 
 const LogoutButton = () => {
@@ -7,10 +8,10 @@ const LogoutButton = () => {
 
   return (
     <button
-      className={classes.LogoutButton}
+      className={[baseClasses.AuthButton, classes.LogoutButton].join(' ')}
       onClick={() => logout({ returnTo: window.location.origin })}
     >
-      Log Out
+      Logout
     </button>
   );
 };
