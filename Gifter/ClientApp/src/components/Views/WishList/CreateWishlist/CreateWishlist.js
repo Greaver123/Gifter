@@ -1,13 +1,17 @@
 import React from 'react';
-// import classes from './CreateWishlist.module.css';
+import classes from './CreateWishlist.module.css';
 
 const CreateWishlist = (props) => {
   return (
-    <div>
+    <div className={classes.CreateWishlist}>
       <input type="text" placeholder="Enter Title" />
       <div>
-        <button onClick={props.cancel}>Cancel</button>
-        <button onClick={props.ok}>Ok</button>
+        <button className={classes.CancelButton} onClick={props.cancel}>
+          Cancel
+        </button>
+        <button className={classes.OkButton} onClick={props.ok}>
+          Ok
+        </button>
       </div>
     </div>
   );

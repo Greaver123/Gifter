@@ -1,28 +1,26 @@
 import React, { Component } from 'react';
 import classes from './WishList.module.css';
 import CreateWishlist from './CreateWishlist/CreateWishlist';
-import { Route } from 'react-router-dom';
+import { Route, Link } from 'react-router-dom';
 import EditWishlist from './EditWishlist/EditWishlist';
 class WishList extends Component {
   state = {
     wishlists: [],
-    createWishlist: false,
-    editWishlist: false,
   };
 
   //TODO Validate Inputs
-
-  showCreateWishlist = () => {
-    console.log('SHOW CREATE WISHLIST');
-    this.setState({ createWishlist: true });
-  };
   cancelCreateWishlist = () => {
     console.log('CANCEL CREATE WISHLIST');
-    this.setState({ createWishlist: false });
+    this.props.history.goBack();
   };
 
-  showEditWishlist = () => {
-    console.log('SHOW EDIT WISHLIST');
+  createWishList = () => {
+    //Send PostRequst
+    //create enttry in db
+    //get response with Id
+    //redirect to edit window
+    let id = 1;
+    this.props.history.push({ pathname: `/wishlist/edit/${id}` });
   };
 
   componentDidMount() {
@@ -34,21 +32,26 @@ class WishList extends Component {
     console.log('[Wishlist] Component did mount');
   }
   render() {
-    let createWishlist = null;
-
-    if (this.state.createWishlist) {
-      createWishlist = (
-        <CreateWishlist
-          cancel={this.cancelCreateWishlist}
-          ok={this.showEditWishlist}
-        />
+    let createWishlistLink =
+      this.props.location.pathname !== `/wishlist` ? null : (
+        <Link
+          to={`${this.props.match.url}/create`}
+          className={classes.CreateWishlist}
+        >
+          Create
+        </Link>
       );
-    }
+
     return (
       <div>
         <h1>WishList</h1>
-        {createWishlist}
-        <button onClick={this.showCreateWishlist}>Create WishList</button>
+        {createWishlistLink}
+        <Route path="/wishlist/create">
+          <CreateWishlist
+            cancel={this.cancelCreateWishlist}
+            ok={this.createWishList}
+          />
+        </Route>
         <Route path="/wishlist/edit" component={EditWishlist} />
       </div>
     );

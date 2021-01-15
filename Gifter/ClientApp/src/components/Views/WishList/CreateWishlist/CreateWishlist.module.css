@@ -1,0 +1,41 @@
+.CreateWishlist {
+  font-size: 26px;
+}
+
+.CreateWishlist input {
+  display: block;
+  width: 250px;
+  margin: auto;
+  text-align: center;
+}
+
+.CreateWishlist div {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.CreateWishlist button {
+  padding: 10px;
+  margin: 10px;
+  border-radius: 10px;
+  border: none;
+  color: white;
+  font-weight: bold;
+}
+
+.OkButton {
+  background-color: rgb(187, 187, 187);
+}
+
+.OkButton:hover {
+  background-color: gainsboro;
+}
+
+.CancelButton {
+  background-color: darkorange;
+}
+
+.CancelButton:hover {
+  background-color: rgba(255, 140, 0, 0.5);
+}
