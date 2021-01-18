@@ -10,17 +10,17 @@
   margin-top: 15px;
   margin-bottom: 15px;
 }
-.AddWishButton {
+.AddWishWrapper button {
   width: 40%;
   margin: auto;
-  border-radius: 10px;
-  padding: 5px;
-  background-color: rgb(187, 187, 187);
-  border: none;
-  font-weight: bold;
-  color: white;
 }
 
 .AddWishButton:hover {
   background-color: gainsboro;
+}
+
+.Buttons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
 }

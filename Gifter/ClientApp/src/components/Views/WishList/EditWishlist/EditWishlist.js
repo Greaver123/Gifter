@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import classes from './EditWishlist.module.css';
 import Wish from './Wish/Wish';
+import Button from '../../../UI/Button/Button';
 
 class EditWishlist extends Component {
   state = {
@@ -42,6 +43,18 @@ class EditWishlist extends Component {
     this.setState({ wishes: updatedWishes });
   };
 
+  deleteWishlist = () => {
+    console.log('DELETE WISHLIST');
+  };
+
+  cancelWishlist = () => {
+    console.log('CANCEL WISHLIST');
+  };
+
+  saveWishlist = () => {
+    console.log('SAVE WISHLIST');
+  };
+
   render() {
     let wishes = this.state.wishes.map((wish, index) => {
       return (
@@ -58,15 +71,34 @@ class EditWishlist extends Component {
     });
 
     return (
-      <div className={classes.Wish}>
+      <React.Fragment>
         <h3>{this.state.title}</h3>
         {wishes}
         <div className={classes.AddWishWrapper}>
-          <button className={classes.AddWishButton} onClick={this.addWish}>
+          <Button type="Add" clicked={this.addWish}>
             Add
-          </button>
+          </Button>
         </div>
-      </div>
+        <div className={classes.GiftGroup}>
+          <select name="GiftGroup">
+            <option value="Birthday 7.01.22">Birthday 7.01.22</option>
+            <option value="Birthday 7.01.22">Birthday 7.01.22</option>
+          </select>
+        </div>
+        <div className={classes.Buttons}>
+          <Button type="Delete" onClick={this.deleteWishlist}>
+            Delete
+          </Button>
+          <div>
+            <Button type="Cancel" onClick={this.cancelWishlist}>
+              Cancel
+            </Button>
+            <Button type="Save" onClick={this.saveWishlist}>
+              Save
+            </Button>
+          </div>
+        </div>
+      </React.Fragment>
     );
   }
 }

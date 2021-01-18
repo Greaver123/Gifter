@@ -1,0 +1,39 @@
+.Button {
+  margin: 10px;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-weight: bold;
+  color: white;
+  border: none;
+}
+
+.Delete {
+  background-color: red;
+}
+.Delete:hover {
+  background-color: rgba(255, 0, 0, 0.7);
+}
+
+.Save {
+  background-color: rgb(172, 255, 47);
+}
+
+.Save:hover {
+  background-color: rgba(172, 255, 47, 0.7);
+}
+
+.Cancel {
+  background-color: rgb(187, 187, 187);
+}
+
+.Cancel:hover {
+  background-color: rgb(187, 187, 187, 0.7);
+}
+
+.Add {
+  background-color: orange;
+}
+
+.Add:hover {
+  background-color: rgba(255, 166, 0, 0.7);
+}
