@@ -2,11 +2,17 @@ import React, { Component } from 'react';
 import classes from './EditWishlist.module.css';
 import Wish from './Wish/Wish';
 import Button from '../../../UI/Button/Button';
+import Dropdown from '../../../UI/Dropdown/Dropdown';
 
 class EditWishlist extends Component {
   state = {
     title: 'My Wishist',
     wishes: [{ id: 1, name: 'Razer', link: 'www.razer.com', price: 299 }],
+    giftGroups: [
+      { id: 1, value: 'Christmas 2022' },
+      { id: 2, value: 'Birthday' },
+      { id: 3, value: 'Other' },
+    ],
   };
 
   removeWish = (e) => {
@@ -80,10 +86,7 @@ class EditWishlist extends Component {
           </Button>
         </div>
         <div className={classes.GiftGroup}>
-          <select name="GiftGroup">
-            <option value="Birthday 7.01.22">Birthday 7.01.22</option>
-            <option value="Birthday 7.01.22">Birthday 7.01.22</option>
-          </select>
+          <Dropdown items={this.state.giftGroups} />
         </div>
         <div className={classes.Buttons}>
           <Button type="Delete" onClick={this.deleteWishlist}>

@@ -24,3 +24,8 @@
   display: flex;
   justify-content: space-between;
 }
+
+.GiftGroup {
+  width: 100%;
+  height: 50px;
+}
