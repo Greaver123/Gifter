@@ -16,8 +16,10 @@ class Dropdown extends Component {
   };
 
   closeOptions = (e) => {
-    console.log('EVENT HANDLER');
-    if (!e.target.classList.contains(classes.Option)) {
+    if (
+      !e.target.classList.contains(classes.Option) ||
+      e.target.classList.contains(classes.Opened)
+    ) {
       this.setState({ open: false });
     }
   };
@@ -36,6 +38,7 @@ class Dropdown extends Component {
     const selectedOption = this.state.options.find(
       (option) => option.id === this.state.selectedId
     );
+
     let options = [
       <div
         key={-1}
