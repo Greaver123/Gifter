@@ -32,7 +32,7 @@ const Wish = (props) => {
       </div>
       <div className={classes.ImagePreview}>
         <div>
-          <input type="file" />
+          <input type="file" style={{ display: 'none' }} />
         </div>
       </div>
     </div>

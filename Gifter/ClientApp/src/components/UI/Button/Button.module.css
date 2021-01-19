@@ -22,18 +22,22 @@
   background-color: rgba(172, 255, 47, 0.7);
 }
 
-.Cancel {
+.Cancel,
+.No {
   background-color: rgb(187, 187, 187);
 }
 
-.Cancel:hover {
+.Cancel:hover,
+.No:hover {
   background-color: rgb(187, 187, 187, 0.7);
 }
 
-.Add {
+.Add,
+.Yes {
   background-color: orange;
 }
 
-.Add:hover {
+.Add:hover,
+.Yes:hover {
   background-color: rgba(255, 166, 0, 0.7);
 }

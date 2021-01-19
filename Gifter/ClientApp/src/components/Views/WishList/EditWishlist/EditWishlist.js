@@ -3,6 +3,7 @@ import classes from './EditWishlist.module.css';
 import Wish from './Wish/Wish';
 import Button from '../../../UI/Button/Button';
 import Dropdown from '../../../UI/Dropdown/Dropdown';
+import Modal from '../../../UI/Modal/Modal';
 
 class EditWishlist extends Component {
   state = {
@@ -13,6 +14,7 @@ class EditWishlist extends Component {
       { id: 2, value: 'Birthday' },
       { id: 3, value: 'Other' },
     ],
+    showDeleteModal: false,
   };
 
   removeWish = (e) => {
@@ -26,7 +28,7 @@ class EditWishlist extends Component {
   addWish = () => {
     let updatedWishes = [...this.state.wishes];
     let newIndex =
-      this.state.wishes.length == 0
+      this.state.wishes.length === 0
         ? 1
         : this.state.wishes[this.state.wishes.length - 1].id + 1;
     updatedWishes.push({
@@ -50,7 +52,16 @@ class EditWishlist extends Component {
   };
 
   deleteWishlist = () => {
-    console.log('DELETE WISHLIST');
+    this.setState({ showDeleteModal: true });
+  };
+
+  cancelDelete = () => {
+    this.setState({ showDeleteModal: false });
+  };
+
+  approveDelete = () => {
+    this.setState({ showDeleteModal: false });
+    this.props.history.push({ pathname: `/wishlist` });
   };
 
   cancelWishlist = () => {
@@ -89,17 +100,27 @@ class EditWishlist extends Component {
           <Dropdown items={this.state.giftGroups} />
         </div>
         <div className={classes.Buttons}>
-          <Button type="Delete" onClick={this.deleteWishlist}>
+          <Button type="Delete" clicked={this.deleteWishlist}>
             Delete
           </Button>
           <div>
-            <Button type="Cancel" onClick={this.cancelWishlist}>
+            <Button type="Cancel" clicked={this.cancelWishlist}>
               Cancel
             </Button>
-            <Button type="Save" onClick={this.saveWishlist}>
+            <Button type="Save" clicked={this.saveWishlist}>
               Save
             </Button>
           </div>
+          <Modal
+            show={this.state.showDeleteModal}
+            yesClicked={this.approveDelete}
+            noClicked={this.cancelDelete}
+          >
+            <p>
+              Are you sure you want to delete current wishlist? It can't be
+              undone.
+            </p>
+          </Modal>
         </div>
       </React.Fragment>
     );
