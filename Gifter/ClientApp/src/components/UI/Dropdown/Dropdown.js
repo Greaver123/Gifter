@@ -16,6 +16,7 @@ class Dropdown extends Component {
   };
 
   closeOptions = (e) => {
+    console.log('EVENT HANDLER');
     if (!e.target.classList.contains(classes.Option)) {
       this.setState({ open: false });
     }
@@ -38,9 +39,11 @@ class Dropdown extends Component {
     let options = [
       <div
         key={-1}
-        className={[classes.Option, classes.Selected, classes.Preview].join(
-          ' '
-        )}
+        className={[
+          classes.Option,
+          classes.Selected,
+          this.state.open ? classes.Opened : classes.Closed,
+        ].join(' ')}
         onClick={this.closeOptions}
       >
         {selectedOption.value}
@@ -77,7 +80,7 @@ class Dropdown extends Component {
       options = (
         <div
           data-option-id={selectedOption.id}
-          className={[classes.Option, classes.Selected, classes.Preview].join(
+          className={[classes.Option, classes.Selected, classes.Closed].join(
             ' '
           )}
           onClick={this.openOptions}
