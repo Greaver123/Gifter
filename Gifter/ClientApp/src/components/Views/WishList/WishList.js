@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import classes from './WishList.module.css';
 import CreateWishlist from './CreateWishlist/CreateWishlist';
-import { Route, Link } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 import EditWishlist from './EditWishlist/EditWishlist';
+import Button from '../../UI/Button/Button';
+
 class WishList extends Component {
   state = {
     wishlists: [],
@@ -31,21 +33,26 @@ class WishList extends Component {
     //    Show only create wishlist button
     console.log('[Wishlist] Component did mount');
   }
+
   render() {
-    let createWishlistLink =
+    let createWishlistButton =
       this.props.location.pathname !== `/wishlist` ? null : (
-        <Link
-          to={`${this.props.match.url}/create`}
-          className={classes.CreateWishlist}
+        <Button
+          type="Add"
+          clicked={() => {
+            this.props.history.push({
+              pathname: `/wishlist/create`,
+            });
+          }}
         >
           Create
-        </Link>
+        </Button>
       );
 
     return (
-      <div>
+      <div className={classes.Wishlist}>
         <h1>WishList</h1>
-        {createWishlistLink}
+        {createWishlistButton}
         <Route path="/wishlist/create">
           <CreateWishlist
             cancel={this.cancelCreateWishlist}

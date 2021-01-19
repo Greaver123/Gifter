@@ -1,13 +1,6 @@
-.CreateWishlist {
-  /* border: 1px solid black; */
+.Wishlist > button {
   display: block;
-  border-radius: 5px;
-  background-color: darkorange;
-  color: white;
-  font-weight: bold;
-  padding: 10px;
   width: 250px;
-  text-align: center;
   margin: auto;
   margin-top: 50px;
   font-size: 26px;
