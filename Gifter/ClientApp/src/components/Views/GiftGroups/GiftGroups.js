@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import classes from './GiftGroups.module.css';
+// import classes from './GiftGroups.module.css';
 
 class GiftGroups extends Component {
   render() {

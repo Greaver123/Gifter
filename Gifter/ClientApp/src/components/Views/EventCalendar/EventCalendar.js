@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import classes from './EventCalendar.module.css';
+// import classes from './EventCalendar.module.css';
 
 class EventCalendar extends Component {
   render() {

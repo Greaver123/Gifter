@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Container } from 'reactstrap';
 import { withAuth0 } from '@auth0/auth0-react';
-import SideDrawer from '../SideDrawer/SideDrawer';
 import Toolbar from '../Toolbar/Toolbar';
 
 class Layout extends Component {
