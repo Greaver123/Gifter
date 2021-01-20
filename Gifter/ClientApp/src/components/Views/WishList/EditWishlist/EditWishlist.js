@@ -65,10 +65,12 @@ class EditWishlist extends Component {
   };
 
   cancelWishlist = () => {
+    this.props.history.push({ pathname: `/wishlist` });
     console.log('CANCEL WISHLIST');
   };
 
   saveWishlist = () => {
+    this.props.history.push({ pathname: `/wishlist` });
     console.log('SAVE WISHLIST');
   };
 
