@@ -1,4 +1,5 @@
 import React from 'react';
+import ImageInput from '../../../../UI/Inputs/ImageInput/ImageInput';
 import classes from './Wish.module.css';
 
 const Wish = (props) => {
@@ -31,9 +32,7 @@ const Wish = (props) => {
         />
       </div>
       <div className={classes.ImagePreview}>
-        <div>
-          <input type="file" style={{ display: 'none' }} />
-        </div>
+        <ImageInput />
       </div>
     </div>
   );

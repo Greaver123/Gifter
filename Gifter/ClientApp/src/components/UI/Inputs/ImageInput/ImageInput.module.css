@@ -1,0 +1,21 @@
+.ImageInput {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.ImageInput input[type='file'] {
+  display: none;
+}
+
+.ImageInput input[type='image'] {
+  position: absolute;
+  margin: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 15px;
+  width: 180px;
+  max-width: 90%;
+  height: auto;
+}
