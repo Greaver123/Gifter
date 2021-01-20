@@ -4,10 +4,17 @@ import CreateWishlist from './CreateWishlist/CreateWishlist';
 import { Route } from 'react-router-dom';
 import EditWishlist from './EditWishlist/EditWishlist';
 import Button from '../../UI/Button/Button';
+import WishlistElement from './WishlistElement/WishListElement';
+import Modal from '../../UI/Modal/Modal';
 
 class WishList extends Component {
   state = {
-    wishlists: [],
+    wishlists: [
+      { id: 1, title: 'My Wishlist 1', assigned: false },
+      { id: 2, title: 'My Wishlist 2', assigned: true },
+      { id: 3, title: 'My Wishlist 3', assigned: false },
+    ],
+    showDeleteModal: false,
   };
 
   //TODO Validate Inputs
@@ -23,6 +30,19 @@ class WishList extends Component {
     //redirect to edit window
     let id = 1;
     this.props.history.push({ pathname: `/wishlist/edit/${id}` });
+  };
+
+  showDeleteModal = () => {
+    this.setState({ showDeleteModal: true });
+  };
+
+  cancelDelete = () => {
+    this.setState({ showDeleteModal: false });
+  };
+
+  approveDelete = () => {
+    this.setState({ showDeleteModal: false });
+    // this.props.history.push({ pathname: `/wishlist` });
   };
 
   componentDidMount() {
@@ -49,9 +69,22 @@ class WishList extends Component {
         </Button>
       );
 
+    let wishlists = this.state.wishlists.map((wishlist) => {
+      return (
+        <WishlistElement
+          key={wishlist.id}
+          id={wishlist.id}
+          title={wishlist.title}
+          assigned={wishlist.assigned}
+          deleteClicked={this.showDeleteModal}
+        />
+      );
+    });
+
     return (
       <div className={classes.Wishlist}>
         <h1>WishList</h1>
+        <div>{wishlists}</div>
         {createWishlistButton}
         <Route path="/wishlist/create">
           <CreateWishlist
@@ -60,6 +93,15 @@ class WishList extends Component {
           />
         </Route>
         <Route path="/wishlist/edit" component={EditWishlist} />
+        {
+          <Modal
+            show={this.state.showDeleteModal}
+            yesClicked={this.approveDelete}
+            noClicked={this.cancelDelete}
+          >
+            <p>Are you sure you want to delete wishlist? It can't be undone.</p>
+          </Modal>
+        }
       </div>
     );
   }
