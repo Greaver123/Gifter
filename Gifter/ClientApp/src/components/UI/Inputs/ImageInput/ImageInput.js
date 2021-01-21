@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react';
+import React, { Component } from 'react';
 import classes from './ImageInput.module.css';
 import image from '../../../../assets/images/imagePreview256px.png';
 class ImageInput extends Component {
@@ -33,6 +33,7 @@ class ImageInput extends Component {
         <input
           type="image"
           src={this.state.selectedUrl ? this.state.selectedUrl : image}
+          alt="image/photo of wish"
           onClick={this.showFileExplorer}
         ></input>
       </div>

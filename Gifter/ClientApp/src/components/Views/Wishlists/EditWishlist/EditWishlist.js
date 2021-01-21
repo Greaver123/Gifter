@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import classes from './EditWishlist.module.css';
 import Wish from './Wish/Wish';
 import Button from '../../../UI/Button/Button';
-import Dropdown from '../../../UI/Dropdown/Dropdown';
+import Dropdown from '../../../UI/Inputs/Dropdown/Dropdown';
 import Modal from '../../../UI/Modal/Modal';
 
 class EditWishlist extends Component {
