@@ -1,0 +1,38 @@
+.GiftGroup {
+  display: flex;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.GiftGroup > div {
+  margin: 0px 5px;
+  padding: 0px 5px;
+}
+
+.GiftGroup > div:first-of-type {
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+  border: 1px dashed black;
+  border-radius: 10px;
+}
+
+.EventWrapper {
+  border-radius: 10px;
+  border: 1px dashed black;
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+  width: auto;
+}
+.EventWrapper p {
+  margin: 0px 5px;
+}
+
+.EventWrapper p:nth-child(2) {
+  padding: 15px;
+  border: 1px solid black;
+  border-radius: 10px;
+  margin-bottom: 5px;
+}

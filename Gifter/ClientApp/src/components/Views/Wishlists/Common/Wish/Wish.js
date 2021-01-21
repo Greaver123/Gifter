@@ -5,9 +5,11 @@ import classes from './Wish.module.css';
 const Wish = (props) => {
   return (
     <div className={classes.Wish} data-id={props.id}>
-      <button className={classes.DeleteButton} onClick={props.clicked}>
-        X
-      </button>
+      {props.displayOnly ? null : (
+        <button className={classes.DeleteButton} onClick={props.clicked}>
+          X
+        </button>
+      )}
       <div className={classes.WishInputs}>
         <input
           type="text"
@@ -15,6 +17,7 @@ const Wish = (props) => {
           placeholder="Name"
           value={props.name}
           onChange={props.changed}
+          disabled={props.displayOnly}
         />
         <input
           type="url"
@@ -22,6 +25,7 @@ const Wish = (props) => {
           placeholder="Link"
           value={props.link}
           onChange={props.changed}
+          disabled={props.displayOnly}
         />
         <input
           type="text"
@@ -29,10 +33,11 @@ const Wish = (props) => {
           placeholder="Price"
           value={props.price}
           onChange={props.changed}
+          disabled={props.displayOnly}
         />
       </div>
       <div className={classes.ImagePreview}>
-        <ImageInput />
+        <ImageInput displayOnly={props.displayOnly} />
       </div>
     </div>
   );

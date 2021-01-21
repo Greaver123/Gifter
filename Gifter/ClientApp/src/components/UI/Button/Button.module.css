@@ -44,3 +44,11 @@
 .Yes:hover {
   background-color: rgba(255, 166, 0, 0.7);
 }
+
+.View {
+  background-color: gainsboro;
+}
+
+.View:hover {
+  background-color: rgba(220, 220, 220, 0.7);
+}

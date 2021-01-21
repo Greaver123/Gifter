@@ -22,22 +22,29 @@ class ImageInput extends Component {
   };
 
   render() {
-    return (
-      <div className={classes.ImageInput}>
-        <input
-          ref={this.imageInput}
-          type="file"
-          accept="image/png, image/jpg"
-          onChange={this.selectImage}
-        />
-        <input
-          type="image"
-          src={this.state.selectedUrl ? this.state.selectedUrl : image}
-          alt="image/photo of wish"
-          onClick={this.showFileExplorer}
-        ></input>
-      </div>
+    let imageInput = (
+      <input type="image" src={image} alt="image/photo of wish" disabled />
     );
+    if (!this.props.displayOnly) {
+      imageInput = (
+        <React.Fragment>
+          <input
+            ref={this.imageInput}
+            type="file"
+            accept="image/png, image/jpg"
+            onChange={this.selectImage}
+          />
+          <input
+            type="image"
+            src={this.state.selectedUrl ? this.state.selectedUrl : image}
+            alt="image/photo of wish"
+            onClick={this.showFileExplorer}
+          ></input>
+        </React.Fragment>
+      );
+    }
+
+    return <div className={classes.ImageInput}>{imageInput}</div>;
   }
 }
 

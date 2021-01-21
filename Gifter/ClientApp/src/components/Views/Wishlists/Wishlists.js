@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import classes from './Wishlists.module.css';
 import CreateWishlist from './CreateWishlist/CreateWishlist';
 import { Route, Switch } from 'react-router-dom';
+import Wishlist from './Wishlist/Wishlist';
 import EditWishlist from './EditWishlist/EditWishlist';
 import Button from '../../UI/Button/Button';
 import WishlistElement from './WishlistElement/WishListElement';
 import Modal from '../../UI/Modal/Modal';
 
-class Wishlist extends Component {
+class Wishlists extends Component {
   state = {
     wishlists: [
       { id: 1, title: 'My Wishlist 1', assigned: false },
@@ -50,6 +51,10 @@ class Wishlist extends Component {
     this.props.history.push({ pathname: `${this.props.match.url}/edit/${id}` });
   };
 
+  showView = (id) => {
+    this.props.history.push({ pathname: `${this.props.match.url}/view/${id}` });
+  };
+
   componentDidMount() {
     //1. Check if there are any wishlist.
     //  If exist
@@ -70,6 +75,7 @@ class Wishlist extends Component {
             id={wishlist.id}
             title={wishlist.title}
             assigned={wishlist.assigned}
+            viewClicked={this.showView.bind(this, wishlist.id)}
             deleteClicked={this.showDeleteModal}
             editClicked={this.showEdit.bind(this, wishlist.id)}
           />
@@ -98,10 +104,14 @@ class Wishlist extends Component {
     }
 
     return (
-      <div className={classes.Wishlist}>
+      <div className={classes.Wishlists}>
         <h1>WishList</h1>
         {wishlistsView}
         <Switch>
+          <Route
+            path={`${this.props.match.url}/view/:id`}
+            component={Wishlist}
+          />
           <Route path={`${this.props.match.url}/create`}>
             <CreateWishlist
               cancel={this.cancelCreateWishlist}
@@ -128,4 +138,4 @@ class Wishlist extends Component {
   }
 }
 
-export default Wishlist;
+export default Wishlists;
