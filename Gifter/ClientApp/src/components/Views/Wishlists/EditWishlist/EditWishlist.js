@@ -61,16 +61,16 @@ class EditWishlist extends Component {
 
   approveDelete = () => {
     this.setState({ showDeleteModal: false });
-    this.props.history.push({ pathname: `/wishlist` });
+    this.props.history.push({ pathname: `/wishlists` });
   };
 
   cancelWishlist = () => {
-    this.props.history.push({ pathname: `/wishlist` });
+    this.props.history.push({ pathname: `/wishlists` });
     console.log('CANCEL WISHLIST');
   };
 
   saveWishlist = () => {
-    this.props.history.push({ pathname: `/wishlist` });
+    this.props.history.push({ pathname: `/wishlists` });
     console.log('SAVE WISHLIST');
   };
 

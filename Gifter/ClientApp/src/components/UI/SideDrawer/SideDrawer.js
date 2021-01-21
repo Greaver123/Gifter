@@ -18,7 +18,7 @@ const SideDrawer = (props) => {
         </NavLink>
         <NavLink to="/eventcalendar">Event Calendar</NavLink>
         <NavLink to="/giftgroups">Gift Groups</NavLink>
-        <NavLink to="/wishlist">WishList</NavLink>
+        <NavLink to="/wishlists">Wishlists</NavLink>
         <NavLink to="/mygifts">My gifts</NavLink>
         <NavLink to="/myideas">My Ideas</NavLink>
         <NavLink to="/profile">Profile</NavLink>

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import classes from './WishList.module.css';
+import classes from './Wishlists.module.css';
 import CreateWishlist from './CreateWishlist/CreateWishlist';
 import { Route, Switch } from 'react-router-dom';
 import EditWishlist from './EditWishlist/EditWishlist';
@@ -7,7 +7,7 @@ import Button from '../../UI/Button/Button';
 import WishlistElement from './WishlistElement/WishListElement';
 import Modal from '../../UI/Modal/Modal';
 
-class WishList extends Component {
+class Wishlist extends Component {
   state = {
     wishlists: [
       { id: 1, title: 'My Wishlist 1', assigned: false },
@@ -29,7 +29,8 @@ class WishList extends Component {
     //get response with Id
     //redirect to edit window
     let id = 1;
-    this.props.history.push({ pathname: `/wishlist/edit/${id}` });
+    console.log(this.props);
+    this.props.history.push({ pathname: `${this.props.match.url}/edit/${id}` });
   };
 
   showDeleteModal = () => {
@@ -46,7 +47,7 @@ class WishList extends Component {
   };
 
   showEdit = (id) => {
-    this.props.history.push({ pathname: `/wishlist/edit/${id}` });
+    this.props.history.push({ pathname: `${this.props.match.url}/edit/${id}` });
   };
 
   componentDidMount() {
@@ -61,7 +62,7 @@ class WishList extends Component {
   render() {
     let wishlistsView = null;
 
-    if (this.props.location.pathname === `/wishlist`) {
+    if (this.props.location.pathname === `/wishlists`) {
       let wishlists = this.state.wishlists.map((wishlist) => {
         return (
           <WishlistElement
@@ -80,7 +81,7 @@ class WishList extends Component {
           type="Add"
           clicked={() => {
             this.props.history.push({
-              pathname: `/wishlist/create`,
+              pathname: `${this.props.match.url}/create`,
             });
           }}
         >
@@ -127,4 +128,4 @@ class WishList extends Component {
   }
 }
 
-export default WishList;
+export default Wishlist;
