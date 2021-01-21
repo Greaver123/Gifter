@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import classes from './WishList.module.css';
 import CreateWishlist from './CreateWishlist/CreateWishlist';
-import { Route } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import EditWishlist from './EditWishlist/EditWishlist';
 import Button from '../../UI/Button/Button';
 import WishlistElement from './WishlistElement/WishListElement';
@@ -45,6 +45,10 @@ class WishList extends Component {
     // this.props.history.push({ pathname: `/wishlist` });
   };
 
+  showEdit = (id) => {
+    this.props.history.push({ pathname: `/wishlist/edit/${id}` });
+  };
+
   componentDidMount() {
     //1. Check if there are any wishlist.
     //  If exist
@@ -55,8 +59,23 @@ class WishList extends Component {
   }
 
   render() {
-    let createWishlistButton =
-      this.props.location.pathname !== `/wishlist` ? null : (
+    let wishlistsView = null;
+
+    if (this.props.location.pathname === `/wishlist`) {
+      let wishlists = this.state.wishlists.map((wishlist) => {
+        return (
+          <WishlistElement
+            key={wishlist.id}
+            id={wishlist.id}
+            title={wishlist.title}
+            assigned={wishlist.assigned}
+            deleteClicked={this.showDeleteModal}
+            editClicked={this.showEdit.bind(this, wishlist.id)}
+          />
+        );
+      });
+
+      const createWishlistButton = (
         <Button
           type="Add"
           clicked={() => {
@@ -69,30 +88,31 @@ class WishList extends Component {
         </Button>
       );
 
-    let wishlists = this.state.wishlists.map((wishlist) => {
-      return (
-        <WishlistElement
-          key={wishlist.id}
-          id={wishlist.id}
-          title={wishlist.title}
-          assigned={wishlist.assigned}
-          deleteClicked={this.showDeleteModal}
-        />
+      wishlistsView = (
+        <React.Fragment>
+          <div>{wishlists}</div>
+          {createWishlistButton}
+        </React.Fragment>
       );
-    });
+    }
 
     return (
       <div className={classes.Wishlist}>
         <h1>WishList</h1>
-        <div>{wishlists}</div>
-        {createWishlistButton}
-        <Route path="/wishlist/create">
-          <CreateWishlist
-            cancel={this.cancelCreateWishlist}
-            ok={this.createWishList}
+        {wishlistsView}
+        <Switch>
+          <Route path={`${this.props.match.url}/create`}>
+            <CreateWishlist
+              cancel={this.cancelCreateWishlist}
+              ok={this.createWishList}
+            />
+          </Route>
+          <Route
+            path={`${this.props.match.url}/edit/:id`}
+            component={EditWishlist}
           />
-        </Route>
-        <Route path="/wishlist/edit" component={EditWishlist} />
+        </Switch>
+
         {
           <Modal
             show={this.state.showDeleteModal}
