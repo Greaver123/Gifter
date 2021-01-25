@@ -34,6 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Gifter.DataAccess\Gifter.DataAccess.csproj" />
+    <ProjectReference Include="..\Gifter.Services\Gifter.Services.csproj" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

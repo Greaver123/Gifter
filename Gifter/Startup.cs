@@ -1,4 +1,5 @@
 using Gifter.DataAccess;
+using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +31,7 @@ namespace Gifter
 
             services.AddControllersWithViews();
             services.AddDbContext<GifterDbContext>(options => options.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Test"));
+            services.AddScoped<IWishlistService, WishlistService>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
