@@ -49,6 +49,17 @@ namespace Gifter
                 options.Audience = Configuration["Auth0:Audience"];
             });
 
+            services.AddCors(options =>
+            {
+                // this defines a CORS policy called "default"
+                options.AddPolicy("default", policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
             services.AddSwaggerGen(c=>
             {
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
@@ -113,6 +124,7 @@ namespace Gifter
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+            app.UseCors("default");
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -129,7 +141,8 @@ namespace Gifter
 
                 if (env.IsDevelopment())
                 {
-                    spa.UseReactDevelopmentServer(npmScript: "start");
+                    //spa.UseReactDevelopmentServer(npmScript: "start");
+                    spa.UseProxyToSpaDevelopmentServer("http://localhost:3000");
                 }
             });
         }
