@@ -68,15 +68,50 @@ namespace Gifter.Services.Services
             return false;
         }
 
-        public int EditWishlit(WishlistEditDTO wishlistEditDTO, string userId)
+        public async Task<bool> EditWishlist(WishlistEditDTO wishlistEditDTO, string userId)
         {
-            throw new System.NotImplementedException();
+            var wishlist = await dbContext.Wishlists
+                .Include(w => w.User)
+                .Include(w=>w.Wishes)
+                .Include(w=>w.GiftGroup)
+                .FirstOrDefaultAsync(w => w.User.Auth0Id == userId && w.Id == wishlistEditDTO.Id);
+
+            //SET GIFTGROUP
+            var giftgroup = await dbContext.GiftGroups.FirstOrDefaultAsync(g => g.Id == wishlistEditDTO.Id);
+            wishlist.GiftGroup = giftgroup;
+
+            //ADD NEW GIFTS OR UPDATE
+            if(wishlist.Wishes != null)
+            {
+                foreach(var wish in wishlistEditDTO.Wishes)
+                {
+                    if (wish.IsNew)
+                    {
+                        wishlist.Wishes.Add(new Wish() { Name = wish.Name, URL = wish.Link, Price = wish.Price });
+                    }
+                    else
+                    {
+                        var giftToEdit = wishlist.Wishes.FirstOrDefault(g => g.Id == wish.Id);
+                       
+                        if(giftToEdit != null)
+                        {
+                            giftToEdit.Name = wish.Name;
+                            giftToEdit.URL = wish.Link;
+                            giftToEdit.Price = wish.Price;
+                        }
+                    }
+                }
+            }
+
+            await dbContext.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<WishlistDTO> GetWishlist(int id, string userid)
         {
             var wishlist = await dbContext.Wishlists
-                .Include(w => w.Gifts)
+                .Include(w => w.Wishes)
                 .Include(w => w.User)
                 .Include(w => w.GiftGroup)
                     .ThenInclude(g => g.Event)
@@ -86,7 +121,7 @@ namespace Gifter.Services.Services
 
             if (wishlist != null)
             {
-                foreach (var gift in wishlist.Gifts)
+                foreach (var gift in wishlist.Wishes)
                 {
                     wishlistDTO.Wishes.Add(new WishDTO()
                     {

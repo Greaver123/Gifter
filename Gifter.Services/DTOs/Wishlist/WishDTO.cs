@@ -12,5 +12,7 @@ namespace Gifter.Services.DTOS.Wishlist
 
         [DataType(DataType.Currency)]
         public double Price { get; set; }
+
+        public bool IsNew { get; set; }
     }
 }

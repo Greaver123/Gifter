@@ -61,8 +61,18 @@ namespace Gifter.Controllers
 
         // PUT api/<WishlistController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put([FromBody]WishlistEditDTO wishlistEditDTO )
         {
+            if (ModelState.IsValid)
+            {
+                await wishlistService.EditWishlist(wishlistEditDTO, User.SubjectId());
+
+                return Ok();
+            }
+
+            return BadRequest();
         }
 
         // DELETE api/<WishlistController>/5

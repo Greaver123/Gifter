@@ -10,7 +10,7 @@ namespace Gifter.Services.Services
         Task<OperationResult<WishlistCreateDTO>> CreateWishlist(string title, string userId);
         Task<IEnumerable<WishlistPreviewDTO>> GetWishlists(string userId);
         Task<bool> DeleteWishlist(int id, string userid);
-        int EditWishlit(WishlistEditDTO wishlistEditDTO, string userid);
+        Task<bool> EditWishlist(WishlistEditDTO wishlistEditDTO, string userid);
         Task<WishlistDTO> GetWishlist(int id, string userid);
     }
 }
