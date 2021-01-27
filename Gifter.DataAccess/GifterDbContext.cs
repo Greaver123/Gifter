@@ -18,7 +18,7 @@ namespace Gifter.DataAccess
 
         public DbSet<Reservation> Reservations { get; set; }
 
-        public DbSet<Gift> Gifts { get; set; }
+        public DbSet<Wish> Wishes { get; set; }
 
         public DbSet<GiftType> GiftType { get; set; }
 
@@ -53,7 +53,7 @@ namespace Gifter.DataAccess
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Reservation>()
-            .HasOne(r => r.Gift)
+            .HasOne(r => r.Wish)
             .WithOne(g => g.Reservation)
             .OnDelete(DeleteBehavior.NoAction);
         }

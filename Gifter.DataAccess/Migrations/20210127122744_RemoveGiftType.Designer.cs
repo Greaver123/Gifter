@@ -4,14 +4,16 @@ using Gifter.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Gifter.DataAccess.Migrations
 {
     [DbContext(typeof(GifterDbContext))]
-    partial class GifterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210127122744_RemoveGiftType")]
+    partial class RemoveGiftType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,6 +54,39 @@ namespace Gifter.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EventTypes");
+                });
+
+            modelBuilder.Entity("Gifter.DataAccess.Models.Gift", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .UseIdentityColumn();
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<string>("URL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WishListId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WishListId");
+
+                    b.ToTable("Gifts");
                 });
 
             modelBuilder.Entity("Gifter.DataAccess.Models.GiftGroup", b =>
@@ -117,18 +152,18 @@ namespace Gifter.DataAccess.Migrations
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("GiftId")
                         .HasColumnType("int");
 
-                    b.Property<int>("WishId")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("WishId")
+                    b.HasIndex("GiftId")
                         .IsUnique();
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Reservations");
                 });
@@ -155,39 +190,6 @@ namespace Gifter.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Gifter.DataAccess.Models.Wish", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
-
-                    b.Property<string>("URL")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("WishListId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WishListId");
-
-                    b.ToTable("Wishes");
                 });
 
             modelBuilder.Entity("Gifter.DataAccess.Models.WishList", b =>
@@ -225,6 +227,17 @@ namespace Gifter.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("EventType");
+                });
+
+            modelBuilder.Entity("Gifter.DataAccess.Models.Gift", b =>
+                {
+                    b.HasOne("Gifter.DataAccess.Models.WishList", "WishList")
+                        .WithMany("Gifts")
+                        .HasForeignKey("WishListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("WishList");
                 });
 
             modelBuilder.Entity("Gifter.DataAccess.Models.GiftGroup", b =>
@@ -265,32 +278,21 @@ namespace Gifter.DataAccess.Migrations
 
             modelBuilder.Entity("Gifter.DataAccess.Models.Reservation", b =>
                 {
+                    b.HasOne("Gifter.DataAccess.Models.Gift", "Gift")
+                        .WithOne("Reservation")
+                        .HasForeignKey("Gifter.DataAccess.Models.Reservation", "GiftId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("Gifter.DataAccess.Models.User", "User")
                         .WithMany("Reservations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("Gifter.DataAccess.Models.Wish", "Wish")
-                        .WithOne("Reservation")
-                        .HasForeignKey("Gifter.DataAccess.Models.Reservation", "WishId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                    b.Navigation("Gift");
 
                     b.Navigation("User");
-
-                    b.Navigation("Wish");
-                });
-
-            modelBuilder.Entity("Gifter.DataAccess.Models.Wish", b =>
-                {
-                    b.HasOne("Gifter.DataAccess.Models.WishList", "WishList")
-                        .WithMany("Wishes")
-                        .HasForeignKey("WishListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("WishList");
                 });
 
             modelBuilder.Entity("Gifter.DataAccess.Models.WishList", b =>
@@ -315,6 +317,11 @@ namespace Gifter.DataAccess.Migrations
                     b.Navigation("GiftGroups");
                 });
 
+            modelBuilder.Entity("Gifter.DataAccess.Models.Gift", b =>
+                {
+                    b.Navigation("Reservation");
+                });
+
             modelBuilder.Entity("Gifter.DataAccess.Models.GiftGroup", b =>
                 {
                     b.Navigation("Participants");
@@ -333,14 +340,9 @@ namespace Gifter.DataAccess.Migrations
                     b.Navigation("WishLists");
                 });
 
-            modelBuilder.Entity("Gifter.DataAccess.Models.Wish", b =>
-                {
-                    b.Navigation("Reservation");
-                });
-
             modelBuilder.Entity("Gifter.DataAccess.Models.WishList", b =>
                 {
-                    b.Navigation("Wishes");
+                    b.Navigation("Gifts");
                 });
 #pragma warning restore 612, 618
         }

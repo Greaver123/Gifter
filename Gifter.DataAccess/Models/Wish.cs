@@ -2,7 +2,7 @@
 
 namespace Gifter.DataAccess.Models
 {
-    public class Gift
+    public class Wish
     {
         public int Id { get; set; }
         
@@ -21,10 +21,6 @@ namespace Gifter.DataAccess.Models
         public int WishListId { get; set; }
 
         public WishList WishList { get; set; }
-
-        public int GiftTypeId { get; set; }
-
-        public GiftType GiftType { get; set; }
 
         public Reservation Reservation { get; set; }
     }

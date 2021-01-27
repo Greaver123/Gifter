@@ -8,8 +8,8 @@
 
         public User User { get; set; }
 
-        public int GiftId { get; set; }
+        public int WishId { get; set; }
 
-        public Gift Gift { get; set; }
+        public Wish Wish { get; set; }
     }
 }

@@ -19,6 +19,6 @@ namespace Gifter.DataAccess.Models
 
         public GiftGroup GiftGroup { get; set; }
 
-        public ICollection<Gift> Gifts { get; set; }
+        public ICollection<Wish> Wishes { get; set; }
     }
 }
