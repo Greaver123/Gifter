@@ -31,12 +31,24 @@ class EditWishlist extends Component {
     this.setState({ wishes: updatedWishes });
   };
 
+  getLastIndex = (wishes) => {
+    if (wishes === null || wishes.length == 0) return 1;
+
+    let lastIndex = 0;
+    for (const wish of wishes) {
+      if (wish.id > lastIndex) {
+        lastIndex = wish.id;
+      }
+    }
+    return lastIndex;
+  };
+
   addWish = () => {
     let updatedWishes = [...this.state.wishes];
-    let newIndex =
-      this.state.wishes.length === 0
-        ? 1
-        : this.state.wishes[this.state.wishes.length - 1].id + 1;
+    let newIndex = updatedWishes.length
+      ? Math.max(...updatedWishes.map((w) => w.id)) + 1
+      : 1;
+    console.log('number', newIndex);
     updatedWishes.push({
       id: newIndex,
       name: '',
