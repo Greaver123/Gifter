@@ -2,20 +2,16 @@ import React, { Component } from 'react';
 import classes from './Wishlist.module.css';
 import Button from '../../../UI/Button/Button';
 import Wish from '../../../Views/Wishlists/Common/Wish/Wish';
+import { withAuth0 } from '@auth0/auth0-react';
+import { axiosDevInstance } from '../../../../axios/axios';
+
 class Wishlist extends Component {
   state = {
     title: 'My Wishist',
-    wishes: [
-      { id: 1, name: 'Mouse', link: 'www.razer.com', price: 299 },
-      { id: 2, name: 'Keyboard', link: 'www.razer.com', price: 200 },
-    ],
-    event: {
-      id: 1,
-      date: '07.01.21',
-      giftgroup: {
-        id: 1,
-        name: 'My Birthday',
-      },
+    wishes: [],
+    giftGroup: {
+      name: '',
+      date: '',
     },
   };
   //TODO fetch id
@@ -28,6 +24,31 @@ class Wishlist extends Component {
       pathname: `/wishlists/edit/${this.props.match.params.id}`,
     });
   };
+
+  async componentDidMount() {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    axiosDevInstance
+      .get(`/wishlist/${this.props.match.params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        this.setState({
+          title: response.data.title,
+          wishes: response.data.wishes,
+          giftGroup: {
+            name: response.data.giftGroupName ?? 'None',
+            date: response.data.eventDate ?? 'None',
+          },
+        });
+      })
+      .catch((error) => {
+        console.log('Could not fetch wishlist', error);
+      });
+  }
 
   render() {
     let wishes = this.state.wishes.map((wish) => {
@@ -52,11 +73,11 @@ class Wishlist extends Component {
           <div className={classes.EventWrapper}>
             <div className={classes.Event}>
               <p>Event</p>
-              <p>{this.state.event.giftgroup.name}</p>
+              <p>{this.state.giftGroup.name}</p>
             </div>
             <div className={classes.Date}>
               <p>Date</p>
-              <p>{this.state.event.date}</p>
+              <p>{this.state.giftGroup.date}</p>
             </div>
           </div>
         </div>
@@ -73,4 +94,4 @@ class Wishlist extends Component {
   }
 }
 
-export default Wishlist;
+export default withAuth0(Wishlist);
