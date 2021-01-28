@@ -4,16 +4,20 @@ import Wish from '../Common/Wish/Wish';
 import Button from '../../../UI/Button/Button';
 import Dropdown from '../../../UI/Inputs/Dropdown/Dropdown';
 import Modal from '../../../UI/Modal/Modal';
+import { withAuth0 } from '@auth0/auth0-react';
+import { axiosDevInstance } from '../../../../axios/axios';
 
 class EditWishlist extends Component {
   state = {
-    title: 'My Wishist',
-    wishes: [{ id: 1, name: 'Razer', link: 'www.razer.com', price: 299 }],
+    id: this.props.match.params.id,
+    title: '',
+    wishes: [],
     giftGroups: [
       { id: 1, value: 'Christmas 2022' },
       { id: 2, value: 'Birthday' },
       { id: 3, value: 'Other' },
     ],
+    selectedGiftGroupId: -1,
     showDeleteModal: false,
   };
 
@@ -36,6 +40,7 @@ class EditWishlist extends Component {
       name: '',
       link: '',
       price: '',
+      isNew: true,
     });
     this.setState({ wishes: updatedWishes });
   };
@@ -66,13 +71,59 @@ class EditWishlist extends Component {
 
   cancelWishlist = () => {
     this.props.history.push({ pathname: `/wishlists` });
-    console.log('CANCEL WISHLIST');
   };
 
-  saveWishlist = () => {
+  saveWishlist = async () => {
     this.props.history.push({ pathname: `/wishlists` });
-    console.log('SAVE WISHLIST');
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    axiosDevInstance
+      .put(
+        `/wishlist/${this.state.id}`,
+        {
+          id: this.state.id,
+          title: this.state.title,
+          wishes: this.state.wishes,
+          giftgroupid: this.state.selectedGiftGroupId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((reponse) => {
+        console.log(reponse);
+      })
+      .catch((error) => {
+        console.log('Could not save wishlist.', error);
+      });
   };
+
+  async componentDidMount() {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    axiosDevInstance
+      .get(`/wishlist/${this.state.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        this.setState({
+          title: response.data.title,
+          wishes: response.data.wishes?.map((w) => {
+            w.isNew = false;
+            return w;
+          }),
+        });
+      })
+      .catch((error) => {
+        console.log('Could not load data', error);
+      });
+  }
 
   render() {
     let wishes = this.state.wishes.map((wish, index) => {
@@ -129,4 +180,4 @@ class EditWishlist extends Component {
   }
 }
 
-export default EditWishlist;
+export default withAuth0(EditWishlist);
