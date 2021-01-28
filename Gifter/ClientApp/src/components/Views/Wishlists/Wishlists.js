@@ -7,44 +7,81 @@ import EditWishlist from './EditWishlist/EditWishlist';
 import Button from '../../UI/Button/Button';
 import WishlistElement from './WishlistElement/WishListElement';
 import Modal from '../../UI/Modal/Modal';
+import { withAuth0 } from '@auth0/auth0-react';
+import { axiosDevInstance } from '../../../axios/axios';
 
 class Wishlists extends Component {
   state = {
-    wishlists: [
-      { id: 1, title: 'My Wishlist 1', assigned: false },
-      { id: 2, title: 'My Wishlist 2', assigned: true },
-      { id: 3, title: 'My Wishlist 3', assigned: false },
-    ],
+    wishlists: [],
     showDeleteModal: false,
+    title: '',
+    wishlistIdDelete: null,
   };
 
-  //TODO Validate Inputs
   cancelCreateWishlist = () => {
-    console.log('CANCEL CREATE WISHLIST');
     this.props.history.goBack();
   };
 
-  createWishList = () => {
-    //Send PostRequst
-    //create enttry in db
-    //get response with Id
-    //redirect to edit window
-    let id = 1;
-    console.log(this.props);
-    this.props.history.push({ pathname: `${this.props.match.url}/edit/${id}` });
+  createWishList = async () => {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    axiosDevInstance
+      .post(
+        '/wishlist',
+        { title: this.state.title },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        const wishlistsUpdate = [...this.state.wishlists];
+        wishlistsUpdate.push(response.data);
+        this.setState({ wishlists: wishlistsUpdate });
+        this.props.history.push({
+          pathname: `${this.props.match.url}/edit/${response.data.id}`,
+        });
+      })
+      .catch((error) => {
+        console.log('Could not add new wishlist', error);
+      });
   };
 
-  showDeleteModal = () => {
-    this.setState({ showDeleteModal: true });
+  showDeleteModal = (id) => {
+    this.setState({ showDeleteModal: true, wishlistIdDelete: id });
   };
 
   cancelDelete = () => {
-    this.setState({ showDeleteModal: false });
+    this.setState({ showDeleteModal: false, wishlistIdDelete: null });
   };
 
-  approveDelete = () => {
-    this.setState({ showDeleteModal: false });
-    // this.props.history.push({ pathname: `/wishlist` });
+  deleteWishlist = async () => {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    axiosDevInstance
+      .delete(`/wishlist/${this.state.wishlistIdDelete}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((reponse) => {
+        let wishlistsUpdated = [...this.state.wishlists];
+
+        wishlistsUpdated = wishlistsUpdated.filter(
+          (w) => w.id !== this.state.wishlistIdDelete
+        );
+        this.setState({
+          wishlists: wishlistsUpdated,
+          wishlistIdDelete: null,
+          showDeleteModal: false,
+        });
+      })
+      .catch((error) => {
+        console.log('Could not delete wishlist', error);
+      });
   };
 
   showEdit = (id) => {
@@ -55,20 +92,41 @@ class Wishlists extends Component {
     this.props.history.push({ pathname: `${this.props.match.url}/view/${id}` });
   };
 
-  componentDidMount() {
-    //1. Check if there are any wishlist.
-    //  If exist
-    //    Fetch wishlists and show wishlists
-    //  else
-    //    Show only create wishlist button
+  titleChanged = (e) => {
+    const title = e.target.value;
+
+    this.setState({ title: title });
+  };
+
+  async componentDidMount() {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    axiosDevInstance
+      .get(`/wishlist`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        this.setState({ wishlists: response.data });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
     console.log('[Wishlist] Component did mount');
   }
 
   render() {
     let wishlistsView = null;
 
-    if (this.props.location.pathname === `/wishlists`) {
-      let wishlists = this.state.wishlists.map((wishlist) => {
+    let wishlists = [];
+    if (
+      this.props.location.pathname === `/wishlists` &&
+      this.state.wishlists.length > 0
+    ) {
+      wishlists = this.state.wishlists.map((wishlist) => {
         return (
           <WishlistElement
             key={wishlist.id}
@@ -76,13 +134,17 @@ class Wishlists extends Component {
             title={wishlist.title}
             assigned={wishlist.assigned}
             viewClicked={this.showView.bind(this, wishlist.id)}
-            deleteClicked={this.showDeleteModal}
+            deleteClicked={this.showDeleteModal.bind(this, wishlist.id)}
             editClicked={this.showEdit.bind(this, wishlist.id)}
           />
         );
       });
+    }
 
-      const createWishlistButton = (
+    let createWishlistButton = null;
+
+    if (this.props.location.pathname === `/wishlists`) {
+      createWishlistButton = (
         <Button
           type="Add"
           clicked={() => {
@@ -94,14 +156,14 @@ class Wishlists extends Component {
           Create
         </Button>
       );
-
-      wishlistsView = (
-        <React.Fragment>
-          <div>{wishlists}</div>
-          {createWishlistButton}
-        </React.Fragment>
-      );
     }
+
+    wishlistsView = (
+      <React.Fragment>
+        <div>{wishlists}</div>
+        {createWishlistButton}
+      </React.Fragment>
+    );
 
     return (
       <div className={classes.Wishlists}>
@@ -116,6 +178,7 @@ class Wishlists extends Component {
             <CreateWishlist
               cancel={this.cancelCreateWishlist}
               ok={this.createWishList}
+              titleChanged={this.titleChanged}
             />
           </Route>
           <Route
@@ -127,7 +190,7 @@ class Wishlists extends Component {
         {
           <Modal
             show={this.state.showDeleteModal}
-            yesClicked={this.approveDelete}
+            yesClicked={this.deleteWishlist}
             noClicked={this.cancelDelete}
           >
             <p>Are you sure you want to delete wishlist? It can't be undone.</p>
@@ -138,4 +201,4 @@ class Wishlists extends Component {
   }
 }
 
-export default Wishlists;
+export default withAuth0(Wishlists);

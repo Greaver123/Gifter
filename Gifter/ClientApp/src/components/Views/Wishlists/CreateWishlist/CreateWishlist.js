@@ -1,10 +1,15 @@
 import React from 'react';
 import classes from './CreateWishlist.module.css';
 import Button from '../../../UI/Button/Button';
+
 const CreateWishlist = (props) => {
   return (
     <div className={classes.CreateWishlist}>
-      <input type="text" placeholder="Enter Title" />
+      <input
+        type="text"
+        placeholder="Enter Title"
+        onChange={props.titleChanged}
+      />
       <div>
         <Button type="Cancel" clicked={props.cancel}>
           Cancel
