@@ -6,6 +6,7 @@ import Dropdown from '../../../UI/Inputs/Dropdown/Dropdown';
 import Modal from '../../../UI/Modal/Modal';
 import { withAuth0 } from '@auth0/auth0-react';
 import { axiosDevInstance } from '../../../../axios/axios';
+import LoadingIndicator from '../../../UI/LoadingIndicator/LoadingIndicator';
 
 class EditWishlist extends Component {
   state = {
@@ -19,6 +20,7 @@ class EditWishlist extends Component {
     ],
     selectedGiftGroupId: -1,
     showDeleteModal: false,
+    loading: false,
   };
 
   removeWish = (e) => {
@@ -105,6 +107,8 @@ class EditWishlist extends Component {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
+    this.setState({ loading: true });
+
     axiosDevInstance
       .get(`/wishlist/${this.state.id}`, {
         headers: {
@@ -112,6 +116,7 @@ class EditWishlist extends Component {
         },
       })
       .then((response) => {
+        this.setState({ loading: false });
         this.setState({
           title: response.data.title,
           wishes: response.data.wishes?.map((w) => {
@@ -121,6 +126,7 @@ class EditWishlist extends Component {
         });
       })
       .catch((error) => {
+        this.setState({ loading: false });
         console.log('Could not load data', error);
       });
   }
@@ -140,7 +146,9 @@ class EditWishlist extends Component {
       );
     });
 
-    return (
+    let editWishlistView = this.state.loading ? (
+      <LoadingIndicator />
+    ) : (
       <React.Fragment>
         <h3>{this.state.title}</h3>
         {wishes}
@@ -177,6 +185,8 @@ class EditWishlist extends Component {
         </div>
       </React.Fragment>
     );
+
+    return editWishlistView;
   }
 }
 

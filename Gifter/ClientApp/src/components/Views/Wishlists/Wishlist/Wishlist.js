@@ -4,6 +4,7 @@ import Button from '../../../UI/Button/Button';
 import Wish from '../../../Views/Wishlists/Common/Wish/Wish';
 import { withAuth0 } from '@auth0/auth0-react';
 import { axiosDevInstance } from '../../../../axios/axios';
+import LoadingIndicator from '../../../UI/LoadingIndicator/LoadingIndicator';
 
 class Wishlist extends Component {
   state = {
@@ -13,7 +14,9 @@ class Wishlist extends Component {
       name: '',
       date: '',
     },
+    loading: false,
   };
+
   //TODO fetch id
   backToWishlists = () => {
     this.props.history.goBack();
@@ -29,6 +32,8 @@ class Wishlist extends Component {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
+    this.setState({ loading: true });
+
     axiosDevInstance
       .get(`/wishlist/${this.props.match.params.id}`, {
         headers: {
@@ -36,6 +41,7 @@ class Wishlist extends Component {
         },
       })
       .then((response) => {
+        this.setState({ loading: false });
         this.setState({
           title: response.data.title,
           wishes: response.data.wishes,
@@ -46,11 +52,14 @@ class Wishlist extends Component {
         });
       })
       .catch((error) => {
+        this.setState({ loading: false });
         console.log('Could not fetch wishlist', error);
       });
   }
 
   render() {
+    let wishlistView = null;
+
     let wishes = this.state.wishes.map((wish) => {
       return (
         <Wish
@@ -64,7 +73,9 @@ class Wishlist extends Component {
       );
     });
 
-    return (
+    wishlistView = this.state.loading ? (
+      <LoadingIndicator />
+    ) : (
       <React.Fragment>
         <h3>{this.state.title}</h3>
         {wishes}
@@ -91,6 +102,8 @@ class Wishlist extends Component {
         </div>
       </React.Fragment>
     );
+
+    return wishlistView;
   }
 }
 

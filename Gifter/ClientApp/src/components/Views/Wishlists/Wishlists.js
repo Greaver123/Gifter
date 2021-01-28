@@ -9,6 +9,7 @@ import WishlistElement from './WishlistElement/WishListElement';
 import Modal from '../../UI/Modal/Modal';
 import { withAuth0 } from '@auth0/auth0-react';
 import { axiosDevInstance } from '../../../axios/axios';
+import LoadingIndicator from '../../UI/LoadingIndicator/LoadingIndicator';
 
 class Wishlists extends Component {
   state = {
@@ -16,6 +17,7 @@ class Wishlists extends Component {
     showDeleteModal: false,
     title: '',
     wishlistIdDelete: null,
+    loading: false,
   };
 
   cancelCreateWishlist = () => {
@@ -101,6 +103,7 @@ class Wishlists extends Component {
   async componentDidMount() {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
+    this.setState({ loading: true });
 
     axiosDevInstance
       .get(`/wishlist`, {
@@ -109,9 +112,11 @@ class Wishlists extends Component {
         },
       })
       .then((response) => {
+        this.setState({ loading: false });
         this.setState({ wishlists: response.data });
       })
       .catch((error) => {
+        this.setState({ loading: false });
         console.log(error);
       });
 
@@ -160,7 +165,7 @@ class Wishlists extends Component {
 
     wishlistsView = (
       <React.Fragment>
-        <div>{wishlists}</div>
+        {this.state.loading ? <LoadingIndicator /> : <div>{wishlists}</div>}
         {createWishlistButton}
       </React.Fragment>
     );
