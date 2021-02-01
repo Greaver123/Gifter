@@ -28,6 +28,8 @@ namespace Gifter.DataAccess
 
         public DbSet<EventType> EventTypes { get; set; }
 
+        public DbSet<Image> Images { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -35,20 +37,20 @@ namespace Gifter.DataAccess
             modelBuilder.Entity<Participant>().HasKey(p => new { p.UserId, p.GriftGroupId });
 
             modelBuilder.Entity<Participant>()
-                .HasOne(p=>p.User)
+                .HasOne(p => p.User)
                 .WithMany(u => u.Participants)
-                .HasForeignKey(p=>p.UserId)
+                .HasForeignKey(p => p.UserId)
                 .OnDelete(DeleteBehavior.NoAction);
 
 
             modelBuilder.Entity<Participant>()
-                .HasOne(p=>p.GiftGroup)
+                .HasOne(p => p.GiftGroup)
                 .WithMany(u => u.Participants)
                 .HasForeignKey(u => u.GriftGroupId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Reservation>()
-                .HasOne(r=>r.User)
+                .HasOne(r => r.User)
                 .WithMany(u => u.Reservations)
                 .OnDelete(DeleteBehavior.NoAction);
 

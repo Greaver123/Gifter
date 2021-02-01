@@ -23,5 +23,7 @@ namespace Gifter.DataAccess.Models
         public WishList WishList { get; set; }
 
         public Reservation Reservation { get; set; }
+
+        public Image Image { get; set; }   
     }
 }
