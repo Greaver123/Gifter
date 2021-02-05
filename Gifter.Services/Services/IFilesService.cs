@@ -6,6 +6,14 @@ namespace Gifter.Services.Services
     public interface IFilesService
     {
         /// <summary>
+        /// Deletes all unassigned images from filesystem without entry in DB for given user.
+        /// </summary>
+        /// <param name="userId">Id of user/name if user directory</param>
+        /// <returns>True if succes</returns>
+        /// <exception cref="ArgumentNullException">Thrown when userId is null, empty or whitespace.</exception>
+        Task<bool> DeleteUnassignedImages(string userId);
+
+        /// <summary>
         /// Store image in users directory with random unique name.
         /// </summary>
         /// <param name="formFile">FormFile object</param>

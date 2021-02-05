@@ -1,9 +1,12 @@
 ﻿using Gifter.Common.Extensions;
 using Gifter.Common.Options;
+using Gifter.DataAccess;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -14,10 +17,12 @@ namespace Gifter.Services.Services
     public class FilesService : IFilesService
     {
         private readonly StoreOptions options;
+        private readonly GifterDbContext dbContext;
 
-        public FilesService(IOptions<StoreOptions> options)
+        public FilesService(IOptions<StoreOptions> options, GifterDbContext dbContext)
         {
             this.options = options.Value;
+            this.dbContext = dbContext;
         }
 
         /// <summary>
@@ -55,6 +60,36 @@ namespace Gifter.Services.Services
             }
 
             return fileFullpath;
+        }
+
+        /// <summary>
+        /// Deletes all unassigned images from filesystem without entry in DB for given user.
+        /// </summary>
+        /// <param name="userId">Id of user/name if user directory</param>
+        /// <returns>True if succes</returns>
+        /// <exception cref="ArgumentNullException">Thrown when userId is null, empty or whitespace.</exception>
+        public async Task<bool> DeleteUnassignedImages(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentNullException(nameof(userId));
+
+            //Get all images for given user
+            var imagesInDB = await dbContext.Images
+                .Include(i => i.Wish)
+                .ThenInclude(w => w.WishList)
+                .ThenInclude(wl => wl.User)
+                .Where(i => i.Wish.WishList.User.Auth0Id == userId).ToListAsync();
+
+            //Get All images files 
+            var dirPath = $"{options.BaseDirectory}\\{userId}";
+            var unassignedFiles = Directory.GetFiles(dirPath).Where(f => !imagesInDB.Exists(i => i.Path == f)).ToList() ;
+
+            foreach (var file in unassignedFiles)
+            {
+                //Debug.WriteLine(file);
+                File.Delete(file);
+            }
+            
+            return true;
         }
     }
 }

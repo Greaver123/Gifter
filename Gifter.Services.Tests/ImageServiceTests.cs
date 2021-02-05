@@ -30,10 +30,10 @@ namespace Gifter.Services.Tests
                 UserStoreMaxSize = 100,
                 FileMaxSize = 5
             });
-            
-            var filesService = new FilesService(storeOptions);
+
+            var filesService = new FilesService(storeOptions, DbContext);
             imageService = new ImageService(DbContext, storeOptions, filesService);
-            
+
             var user = new User()
             {
                 Auth0Id = "vcxvsdfsdfs",
