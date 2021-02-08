@@ -1,4 +1,5 @@
-﻿using Gifter.Common.Options;
+﻿using Gifter.Common.Exceptions;
+using Gifter.Common.Options;
 using Gifter.DataAccess.Models;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Http;
@@ -33,14 +34,14 @@ namespace Gifter.Services.Tests
 
         public FileServiceTests() : base()
         {
-            filesService = new FilesService(
+            filesService = new FilesService(DbContext,
                 Options.Create(
                     new StoreOptions()
                     {
                         BaseDirectory = BASEDESTPATH,
                         UserStoreMaxSize = 100,
-                        FileMaxSize = 5
-                    }), DbContext);
+                        FileMaxSize = 5000000, //5MB
+                    }));
 
             var user = new User()
             {
@@ -83,7 +84,7 @@ namespace Gifter.Services.Tests
             using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.txt"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+                await Assert.ThrowsExceptionAsync<FormatException>(async () =>
                 {
                     var result = await filesService.StoreImageAsync(formFile, "testDir");
                 });
@@ -96,7 +97,7 @@ namespace Gifter.Services.Tests
             using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image20MB.png"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+                await Assert.ThrowsExceptionAsync<FileSizeException>(async () =>
                 {
                     var result = await filesService.StoreImageAsync(formFile, "testDir");
                 });

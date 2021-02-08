@@ -24,16 +24,7 @@ namespace Gifter.Services.Tests
 
         public ImageServiceTests() : base()
         {
-            var storeOptions = Options.Create(new StoreOptions()
-            {
-                BaseDirectory = @"C:\Users\pkolo\Repos\Gifter\Gifter.Services.Tests\ImagesDest",
-                UserStoreMaxSize = 100,
-                FileMaxSize = 5
-            });
-
-            var filesService = new FilesService(storeOptions, DbContext);
-            imageService = new ImageService(DbContext, storeOptions, filesService);
-
+            imageService = new ImageService(DbContext, StoreOptions);
             var user = new User()
             {
                 Auth0Id = "vcxvsdfsdfs",
@@ -63,34 +54,12 @@ namespace Gifter.Services.Tests
         }
 
         [TestMethod]
-        public async Task UploadImage_WishExistsAndImageNotUploaded_Success()
+        public async Task AddImage_ValidParameters_ReturnsImageId()
         {
-            var user = DbContext.Users.FirstOrDefault();
-            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
-
-            using (var stream = File.OpenRead($"{ImageSourcePath}\\image.png"))
-            {
-                var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                var result = await imageService.UploadAsync(new UploadImageDTO() { WishId = 1, ImageFile = formFile }, user.Auth0Id);
-
-                Assert.AreEqual(1, result);
-            }
-        }
-
-        [TestMethod]
-        public async Task UploadImage_TextFile_ThrowsArgumentException()
-        {
-            var user = DbContext.Users.FirstOrDefault();
-            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
-
-            using (var stream = File.OpenRead($"{ImageSourcePath}\\image.txt"))
-            {
-                var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
-                {
-                    var result = await imageService.UploadAsync(new UploadImageDTO() { WishId = 1, ImageFile = formFile }, user.Auth0Id);
-                }, "File is not a image");
-            }
+            //TODO 
+            //var user = DbContext.Users.FirstOrDefault();
+            //var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
+            //await imageService.AddImage(1, "path", user.Auth0Id);
         }
     }
 }

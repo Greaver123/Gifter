@@ -1,4 +1,5 @@
-﻿using Gifter.Common.Extensions;
+﻿using Gifter.Common.Exceptions;
+using Gifter.Common.Extensions;
 using Gifter.Common.Options;
 using Gifter.DataAccess;
 using Microsoft.AspNetCore.Http;
@@ -19,7 +20,7 @@ namespace Gifter.Services.Services
         private readonly StoreOptions options;
         private readonly GifterDbContext dbContext;
 
-        public FilesService(IOptions<StoreOptions> options, GifterDbContext dbContext)
+        public FilesService(GifterDbContext dbContext, IOptions<StoreOptions> options)
         {
             this.options = options.Value;
             this.dbContext = dbContext;
@@ -32,27 +33,31 @@ namespace Gifter.Services.Services
         /// <param name="dirName">Name of directory to store images</param>
         /// <returns>Full path to created image.</returns>
         /// <exception cref="IOException">Thrown when file already exists.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when formFile or dirName is null/empty or whitespace</exception>
-        /// <exception cref="ArgumentException">Thrown when formFile is not a image.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when formFile or dirName is null/empty or whitespace.</exception>
+        /// <exception cref="FormatException">Thrown when formFile is not a image and singature not recognised among suported: PNG, JPG or GIF</exception>
+        /// <exception cref="FileSizeException">Thrown when size of file exceed max size.</exception>
         public async Task<string> StoreImageAsync(IFormFile formFile, string dirName)
         {
             if (formFile == null) throw new ArgumentNullException(nameof(formFile));
             if (string.IsNullOrWhiteSpace(dirName)) throw new ArgumentNullException($"{dirName} cannot be null, empty or whitespace.");
-            if (!formFile.IsImage()) throw new ArgumentException("File is not a image.");
-            if (formFile.Length > options.FileMaxSize * 1000000) throw new ArgumentException("File is too big.");
+            if (!formFile.IsImage()) throw new FormatException("File is not a image.");
+            if (formFile.Length > options.FileMaxSize) throw new FileSizeException("File is too big.", options.FileMaxSize);
 
             //var name = $"{Path.GetRandomFileName().Replace(".", "")}{DateTime.Now.Ticks}";
             var name = $"{DateTime.Now.Ticks}";
             var userDir = $"{this.options.BaseDirectory}\\{dirName}";
             var extension = formFile.TryGetImageExtension();
 
-            if (extension == null) throw new ArgumentException("File signature not recognised.");
+            if (extension == null) throw new FormatException("File signature not recognised.");
 
             var fileFullpath = $"{userDir}\\{name}{extension}";
 
             if (File.Exists(fileFullpath)) throw new IOException($"File already exists with given name: {name}.");
 
-            Directory.CreateDirectory(userDir);
+            if (!Directory.Exists(userDir))
+            {
+                Directory.CreateDirectory(userDir);
+            }
 
             using (var stream = File.Create(fileFullpath))
             {
@@ -81,14 +86,14 @@ namespace Gifter.Services.Services
 
             //Get All images files 
             var dirPath = $"{options.BaseDirectory}\\{userId}";
-            var unassignedFiles = Directory.GetFiles(dirPath).Where(f => !imagesInDB.Exists(i => i.Path == f)).ToList() ;
+            var unassignedFiles = Directory.GetFiles(dirPath).Where(f => !imagesInDB.Exists(i => i.Path == f)).ToList();
 
             foreach (var file in unassignedFiles)
             {
                 //Debug.WriteLine(file);
                 File.Delete(file);
             }
-            
+
             return true;
         }
     }

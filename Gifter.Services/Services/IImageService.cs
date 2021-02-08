@@ -5,8 +5,6 @@ namespace Gifter.Services.Services
 {
     public interface IImageService
     {
-        Task<int> UploadAsync(UploadImageDTO uploadImageDTO, string userId);
-
         /// <summary>
         /// Save Image for given WishId
         /// </summary>
@@ -14,7 +12,9 @@ namespace Gifter.Services.Services
         /// <param name="filePath">Path for image</param>
         /// <param name="userId">Authenticated userid</param>
         /// <returns>true if operation succeded</returns>
+        /// <exception cref="ArgumentException">Thrown when filepath or userId are null/empty or whitespace</exception>
         /// <exception cref="DbUpdateException"></exception>
-        Task<bool> AddImage(int wishId, string filePath, string userId);
+        /// <exception cref="DbUpdateConcurrencyException"></exception>
+        Task<bool> AddImageAsync(int wishId, string filePath);
     }
 }
