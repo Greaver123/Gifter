@@ -71,7 +71,7 @@ namespace Gifter.Services.Services
         /// Deletes all unassigned images from filesystem without entry in DB for given user.
         /// </summary>
         /// <param name="userId">Id of user/name if user directory</param>
-        /// <returns>True if succes</returns>
+        /// <returns>True if success</returns>
         /// <exception cref="ArgumentNullException">Thrown when userId is null, empty or whitespace.</exception>
         public async Task<bool> DeleteUnassignedImages(string userId)
         {
@@ -95,6 +95,19 @@ namespace Gifter.Services.Services
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Gets bytes array of stored image
+        /// </summary>
+        /// <param name="imagePath"></param>
+        /// <returns>Byte array of image</returns>
+        /// <exception cref="FileNotFoundException">Thrown when file not found</exception>
+        public async Task<byte[]> GetStoredImageAsync(string imagePath)
+        {
+            if (!File.Exists(imagePath)) throw new FileNotFoundException();
+
+            return await File.ReadAllBytesAsync(imagePath);
         }
     }
 }

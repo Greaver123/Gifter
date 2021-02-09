@@ -1,8 +1,7 @@
 ﻿using Gifter.Common.Exceptions;
 using Gifter.Common.Options;
 using Gifter.DataAccess;
-using Gifter.Services.Common;
-using Gifter.Services.DTOs.Image;
+using Gifter.Services.DTOS.Image;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
@@ -66,6 +65,37 @@ namespace Gifter.Services.Services
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Gets image for given wishId.
+        /// </summary>
+        /// <param name="wishId">Id of wish.</param>
+        /// <returns>Image byte array or null if there is no image for given <paramref name="wishId"/></returns>
+        /// <exception cref="ArgumentException">Thrown when userId is null, empty or whitespace.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when could not find file on filesystem which path is stored in Wish entity.</exception>
+        /// <exception cref="FileLoadException">Thrown when could not load file extension from Image entity path.</exception>
+        public async Task<DownloadImageDTO> DownloadImageAsync(int wishId, string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException($"{nameof(userId)} is null, empty or whitespace.");
+
+            var wish = await dbContext.Wishes
+                .Include(w => w.WishList)
+                .ThenInclude(wl => wl.User)
+                .Include(w => w.Image)
+                .FirstOrDefaultAsync(w => w.Id == wishId && w.WishList.User.Auth0Id == userId);
+
+            if (wish == null || wish.Image == null) return null;
+
+            var fileExtension = Path.GetExtension(wish.Image.Path);
+
+            if (string.IsNullOrWhiteSpace(fileExtension)) throw new FileLoadException($"Could not load file extension from filepath: {wish.Image.Path}.");
+
+            return new DownloadImageDTO()
+            {
+                FileExtension = fileExtension.Remove(0,1), //Remove "." from extension string
+                Image = await filesService.GetStoredImageAsync(wish.Image.Path)
+            };
         }
     }
 }

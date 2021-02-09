@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace Gifter.Services.DTOs.Image
+namespace Gifter.Services.DTOS.Image
 {
     public class UploadImageDTO
     {

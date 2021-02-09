@@ -14,6 +14,14 @@ namespace Gifter.Services.Services
         Task<bool> DeleteUnassignedImages(string userId);
 
         /// <summary>
+        /// Gets bytes array of stored image
+        /// </summary>
+        /// <param name="imagePath"></param>
+        /// <returns>Byte array of stored image</returns>
+        /// <exception cref="FileNotFoundException">Thrown when file not found</exception>
+        Task<byte[]> GetStoredImageAsync(string imagePath);
+
+        /// <summary>
         /// Creates image in users directory with random unique name.
         /// </summary>
         /// <param name="formFile">FormFile object</param>

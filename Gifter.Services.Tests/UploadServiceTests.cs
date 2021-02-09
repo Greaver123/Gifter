@@ -1,11 +1,9 @@
 ﻿using Gifter.Common.Exceptions;
-using Gifter.Common.Options;
 using Gifter.DataAccess.Models;
-using Gifter.Services.DTOs.Image;
+using Gifter.Services.DTOS.Image;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -16,7 +14,7 @@ using System.Threading.Tasks;
 namespace Gifter.Services.Tests
 {
     [TestClass]
-    public class UploadServiceTests: TestWithSQLiteBase
+    public class UploadServiceTests : TestWithSQLiteBase
     {
         private readonly UploadService uploadService;
         private string ImageSourcePath;
@@ -77,6 +75,114 @@ namespace Gifter.Services.Tests
                     var result = await uploadService.UploadAsync(new UploadImageDTO() { WishId = 1, ImageFile = formFile }, user.Auth0Id);
                 });
             }
+        }
+
+        [TestMethod]
+        public async Task DownloadImage_WishIdExists_ReturnsImageByteArrayAndExtension()
+        {
+            var user = DbContext.Users.FirstOrDefault();
+            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
+            var imageSoruceFullPath = $"{this.ImageSourcePath}\\image.png";
+
+            var wish = DbContext.Wishes.Add(
+                 new Wish()
+                 {
+                     WishListId = wishlist.Id,
+                     Name = "Test",
+                     Price = 9999,
+                     Image = new Image()
+                     {
+                         Path = $"{this.ImageSourcePath}\\image.png"
+                     },
+                 });
+
+            DbContext.SaveChanges();
+
+            var actualResult = await uploadService.DownloadImageAsync(wish.Entity.Id, user.Auth0Id);
+            var expectedImageArray = File.ReadAllBytes(imageSoruceFullPath);
+            
+            Assert.IsNotNull(actualResult.Image);
+            Assert.IsTrue(actualResult.Image.SequenceEqual(expectedImageArray));
+            Assert.AreEqual("png", actualResult.FileExtension);
+        }
+
+        [TestMethod]
+        public async Task DownloadImage_WishIdDontExist_ReturnsNull()
+        {
+            var user = DbContext.Users.FirstOrDefault();
+            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
+            var imageSoruceFullPath = $"{this.ImageSourcePath}\\image.png";
+
+            var wish = DbContext.Wishes.Add(
+                 new Wish()
+                 {
+                     WishListId = wishlist.Id,
+                     Name = "Test",
+                     Price = 9999,
+                     Image = new Image()
+                     {
+                         Path = $"{this.ImageSourcePath}\\image.png"
+                     },
+                 });
+
+            DbContext.SaveChanges();
+
+            var actualResult = await uploadService.DownloadImageAsync(9999, user.Auth0Id);
+
+            Assert.IsNull(actualResult);
+        }
+
+        [TestMethod]
+        public async Task DownloadImage_ImageDontExistOnFileSystem_ThrowsFileNotFoundException()
+        {
+            var user = DbContext.Users.FirstOrDefault();
+            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
+            var imageSoruceFullPath = $"{this.ImageSourcePath}\\image.png";
+
+            var wish = DbContext.Wishes.Add(
+                 new Wish()
+                 {
+                     WishListId = wishlist.Id,
+                     Name = "Test",
+                     Price = 9999,
+                     Image = new Image()
+                     {
+                         Path = $"{this.ImageSourcePath}\\dontExist.png"
+                     },
+                 });
+
+            DbContext.SaveChanges();
+
+            await Assert.ThrowsExceptionAsync<FileNotFoundException>(async () =>
+             {
+                 var actualResult = await uploadService.DownloadImageAsync(wish.Entity.Id, user.Auth0Id);
+             });
+        }
+
+        [TestMethod]
+        public async Task DownloadImage_NoFileExtension_ThrowsFileLoadException()
+        {
+            var user = DbContext.Users.FirstOrDefault();
+            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
+            var imageSoruceFullPath = $"{this.ImageSourcePath}\\image";
+
+            var wish = DbContext.Wishes.Add(
+                 new Wish()
+                 {
+                     WishListId = wishlist.Id,
+                     Name = "Test",
+                     Price = 9999,
+                     Image = new Image()
+                     {
+                         Path = imageSoruceFullPath
+                     },
+                 });
+
+            DbContext.SaveChanges();
+
+            await Assert.ThrowsExceptionAsync<FileLoadException>(async () => {
+                var result = await uploadService.DownloadImageAsync(wish.Entity.Id, user.Auth0Id);
+            });
         }
     }
 }
