@@ -87,6 +87,57 @@ class EditWishlist extends Component {
     this.props.history.push({ pathname: `/wishlists` });
   };
 
+  uploadImage = async (wishId, image) => {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    let formData = new FormData();
+    formData.append('ImageFile', image);
+    formData.append('wishId', wishId);
+
+    console.log('IMAGE SELECTED');
+    console.log(image);
+    axiosDevInstance
+      .post('/images/upload', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data);
+      })
+      .catch((error) => {
+        console.log('Could not upload image', error);
+      });
+  };
+
+  getImages = async () => {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    this.state.wishes.forEach((wish) => {
+      axiosDevInstance
+        .get(`/images/${wish.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((response) => {
+          const updatedWishes = [...this.state.wishes];
+          const wishes = updatedWishes.map((w) => {
+            if (w.id == wish.id) {
+              w.image = response.data;
+            }
+            return w;
+          });
+          this.setState({ wishes: wishes });
+        })
+        .catch((error) => {
+          console.log('Could not get image');
+        });
+    });
+  };
+
   saveWishlist = async () => {
     this.props.history.push({ pathname: `/wishlists` });
     const { getAccessTokenSilently } = this.props.auth0;
@@ -136,6 +187,8 @@ class EditWishlist extends Component {
             return w;
           }),
         });
+
+        this.getImages();
       })
       .catch((error) => {
         this.setState({ loading: false });
@@ -153,7 +206,9 @@ class EditWishlist extends Component {
           name={wish.name}
           link={wish.link}
           price={wish.price}
+          image={wish.image}
           changed={this.onInputChange}
+          imageSelected={this.uploadImage}
         />
       );
     });

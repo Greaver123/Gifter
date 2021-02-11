@@ -37,7 +37,12 @@ const Wish = (props) => {
         />
       </div>
       <div className={classes.ImagePreview}>
-        <ImageInput displayOnly={props.displayOnly} />
+        <ImageInput
+          displayOnly={props.displayOnly}
+          imageSelected={props.imageSelected}
+          image={props.image}
+          wishId={props.id}
+        />
       </div>
     </div>
   );

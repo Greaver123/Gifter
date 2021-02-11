@@ -14,6 +14,12 @@ class ImageInput extends Component {
 
       const imgUrl = URL.createObjectURL(selectedImage);
       this.setState({ selectedUrl: imgUrl });
+
+      const imageSelected = this.props?.imageSelected;
+
+      if (imageSelected) {
+        imageSelected(this.props.wishId, selectedImage);
+      }
     }
   };
 
@@ -36,7 +42,13 @@ class ImageInput extends Component {
           />
           <input
             type="image"
-            src={this.state.selectedUrl ? this.state.selectedUrl : image}
+            src={
+              this.state.selectedUrl
+                ? this.state.selectedUrl
+                : this.props.image
+                ? this.props.image
+                : image
+            }
             alt="image/photo of wish"
             onClick={this.showFileExplorer}
           ></input>
