@@ -6,11 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Gifter.Services.Services
@@ -49,7 +46,6 @@ namespace Gifter.Services.Services
             var extension = formFile.TryGetImageExtension();
 
             if (extension == null) throw new FormatException("File signature not recognised.");
-
             var fileFullpath = $"{userDir}\\{name}{extension}";
 
             if (File.Exists(fileFullpath)) throw new IOException($"File already exists with given name: {name}.");

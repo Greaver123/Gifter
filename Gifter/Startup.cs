@@ -1,3 +1,4 @@
+using Gifter.Common.Options;
 using Gifter.DataAccess;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -32,6 +33,11 @@ namespace Gifter
             services.AddControllersWithViews();
             services.AddDbContext<GifterDbContext>(options => options.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Test"));
             services.AddScoped<IWishlistService, WishlistService>();
+            services.AddScoped<IImageService, ImageService>();
+            services.AddScoped<IUploadService, UploadService>();
+            services.AddScoped<IFilesService, FilesService>();
+            services.AddOptions<StoreOptions>().Bind(Configuration.GetSection(StoreOptions.Store));
+
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -54,7 +60,7 @@ namespace Gifter
                 // this defines a CORS policy called "default"
                 options.AddPolicy("default", policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000")
+                    policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });

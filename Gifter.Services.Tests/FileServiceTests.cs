@@ -79,7 +79,7 @@ namespace Gifter.Services.Tests
         }
 
         [TestMethod]
-        public async Task StoreImageAsync_TxtFile_ThrowsArgumentException()
+        public async Task StoreImageAsync_TxtFile_ThrowsFormatException()
         {
             using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.txt"))
             {
@@ -87,6 +87,19 @@ namespace Gifter.Services.Tests
                 await Assert.ThrowsExceptionAsync<FormatException>(async () =>
                 {
                     var result = await filesService.StoreImageAsync(formFile, "testDir");
+                });
+            }
+        }
+
+        [TestMethod]
+        public async Task StoreImageAsync_InvalidCharactersInDirName_ThrowsIOException()
+        {
+            using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.png"))
+            {
+                var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
+                await Assert.ThrowsExceptionAsync<IOException>(async () =>
+                {
+                    var result = await filesService.StoreImageAsync(formFile, "auth|fdsfsdf");
                 });
             }
         }
