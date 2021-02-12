@@ -1,4 +1,5 @@
-﻿using Gifter.Common.Exceptions;
+﻿using Gifter.Common;
+using Gifter.Common.Exceptions;
 using Gifter.Common.Extensions;
 using Gifter.Common.Options;
 using Gifter.DataAccess;
@@ -104,6 +105,19 @@ namespace Gifter.Services.Services
             if (!File.Exists(imagePath)) throw new FileNotFoundException();
 
             return await File.ReadAllBytesAsync(imagePath);
+        }
+
+        /// <summary>
+        /// Delete image from filesystem for given <paramref name="path"/>.
+        /// </summary>
+        /// <param name="path">Path to file to be deleted.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="path"/> is null, empty, or whitespace.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when file could not be found or path is invalid</exception>
+        public void Delete(string path)
+        {
+            Guard.IsNullEmptyOrWhiteSpace(path, nameof(path));
+            Guard.IsValidPath(path);
+            File.Delete(path);
         }
     }
 }

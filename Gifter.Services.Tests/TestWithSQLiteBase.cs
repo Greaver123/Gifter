@@ -13,6 +13,9 @@ namespace Gifter.Services.Tests
         private readonly SqliteConnection _connection;
         protected readonly GifterDbContext DbContext;
         public IOptions<StoreOptions> StoreOptions { get; private set; }
+        public string ImageDestPath { get; set; } = @"C:\Users\pkolo\Repos\Gifter\Gifter.Services.Tests\ImagesDest\";
+        public string ImageSrcPath { get; set; } = @"C:\Users\pkolo\Repos\Gifter\Gifter.Services.Tests\Images\";
+
 
         protected TestWithSQLiteBase()
         {

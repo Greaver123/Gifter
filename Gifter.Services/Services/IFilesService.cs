@@ -22,6 +22,14 @@ namespace Gifter.Services.Services
         Task<byte[]> GetStoredImageAsync(string imagePath);
 
         /// <summary>
+        /// Delete image from filesystem for given <paramref name="path"/>.
+        /// </summary>
+        /// <param name="path">Path to file to be deleted.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="path"/> is null, empty, or whitespace.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when file could not be found or path is invalid</exception>
+        void Delete(string path);
+
+        /// <summary>
         /// Creates image in users directory with random unique name.
         /// </summary>
         /// <param name="formFile">FormFile object</param>
