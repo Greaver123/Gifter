@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Gifter.Services.DTOS.Wishlist
+namespace Gifter.Services.DTOS.Wish
 {
-    public class WishDTO
+    public class WishCreateDTO
     {
         public int Id { get; set; }
 

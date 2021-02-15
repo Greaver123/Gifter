@@ -2,6 +2,7 @@
 using Gifter.DataAccess.Models;
 using Gifter.Services.Common;
 using Gifter.Services.Constants;
+using Gifter.Services.DTOS.Wish;
 using Gifter.Services.DTOS.Wishlist;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -121,14 +122,14 @@ namespace Gifter.Services.Services
 
             if (wishlist != null)
             {
-                foreach (var gift in wishlist.Wishes)
+                foreach (var wish in wishlist.Wishes)
                 {
                     wishlistDTO.Wishes.Add(new WishDTO()
                     {
-                        Id = gift.Id,
-                        Name = gift.Name,
-                        Link = gift.URL,
-                        Price = gift.Price
+                        Id = wish.Id,
+                        Name = wish.Name,
+                        Link = wish.URL,
+                        Price = wish.Price
                     });
                 }
 

@@ -1,10 +1,8 @@
 ﻿using Gifter.Common;
 using Gifter.DataAccess;
 using Gifter.DataAccess.Models;
-using Gifter.Services.DTOS.Wishlist;
+using Gifter.Services.DTOS.Wish;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace Gifter.Services.Services
@@ -19,6 +17,7 @@ namespace Gifter.Services.Services
             this.dbContext = dbContext;
             this.filesService = filesService;
         }
+
         /// <summary>
         /// Adds new wish for given wishlistId
         /// </summary>
@@ -32,6 +31,7 @@ namespace Gifter.Services.Services
 
             var wishlist = await dbContext.Wishlists
                 .Include(wl => wl.User)
+                .Include(wl => wl.Wishes)
                 .FirstOrDefaultAsync(wl => wl.Id == addWishDTO.WishlistId && wl.User.Auth0Id == userId);
 
             if (wishlist == null) return null;
@@ -48,7 +48,6 @@ namespace Gifter.Services.Services
 
             return wish.Id;
         }
-
 
         /// <summary>
         /// Deletes Wish from wishlist
@@ -80,17 +79,19 @@ namespace Gifter.Services.Services
 
             return true;
         }
+
+        public async Task<WishDTO> GetAsync(int id, string userId)
+        {
+            var wish = await dbContext.Wishes
+          .Include(w => w.WishList)
+          .ThenInclude(wl => wl.User)
+          .FirstOrDefaultAsync(w => w.Id == id && w.WishList.User.Auth0Id == userId);
+
+            //Should I include Image ? 
+
+            return wish != null ? new WishDTO() { Id = wish.Id, Name = wish.Name, Link = wish.URL, Price = wish.Price } : null;
+        }
     }
 
-    public class AddWishDTO
-    {
-        [Required]
-        public int WishlistId { get; set; }
 
-        public string Name { get; set; }
-
-        public double Price { get; set; }
-
-        public string URL { get; set; }
-    }
 }

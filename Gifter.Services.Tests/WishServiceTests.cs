@@ -1,4 +1,5 @@
 ﻿using Gifter.DataAccess.Models;
+using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;

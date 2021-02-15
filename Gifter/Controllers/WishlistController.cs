@@ -33,10 +33,10 @@ namespace Gifter.Controllers
         }
 
         // GET api/<WishlistController>/5
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<WishlistDTO>> Get(int id)
+        public async Task<ActionResult<WishlistDTO>> Get([FromRoute]int id)
         {
             var wishlist = await wishlistService.GetWishlist(id, User.SubjectId());
 

@@ -1,6 +1,5 @@
-﻿using System;
+﻿using Gifter.Services.DTOS.Wish;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace Gifter.Services.DTOS.Wishlist
 {
@@ -10,7 +9,7 @@ namespace Gifter.Services.DTOS.Wishlist
 
         public string Title { get; set; }
 
-        public IEnumerable<WishDTO> Wishes { get; set; }
+        public IEnumerable<WishCreateDTO> Wishes { get; set; }
 
         public int GiftGroupId { get; set; }
     }

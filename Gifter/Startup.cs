@@ -36,6 +36,7 @@ namespace Gifter
             services.AddScoped<IImageService, ImageService>();
             services.AddScoped<IUploadService, UploadService>();
             services.AddScoped<IFilesService, FilesService>();
+            services.AddScoped<IWishService, WishService>();
             services.AddOptions<StoreOptions>().Bind(Configuration.GetSection(StoreOptions.Store));
 
 

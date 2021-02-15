@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Gifter.Services.DTOS.Wish;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
