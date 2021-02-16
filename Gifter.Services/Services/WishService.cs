@@ -1,8 +1,12 @@
 ﻿using Gifter.Common;
 using Gifter.DataAccess;
 using Gifter.DataAccess.Models;
+using Gifter.Services.Common;
+using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
+using Gifter.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Gifter.Services.Services
@@ -24,7 +28,7 @@ namespace Gifter.Services.Services
         /// <param name="addWishDTO">Wish to be added</param>
         /// <param name="userId">Id of user</param>
         /// <returns>Id of added wish or null if wishlist not found</returns>
-        public async Task<int?> AddAsync(AddWishDTO addWishDTO, string userId)
+        public async Task<OperationResult<WishDTO>> AddAsync(AddWishDTO addWishDTO, string userId)
         {
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
             Guard.IsNull(addWishDTO, nameof(addWishDTO));
@@ -34,7 +38,12 @@ namespace Gifter.Services.Services
                 .Include(wl => wl.Wishes)
                 .FirstOrDefaultAsync(wl => wl.Id == addWishDTO.WishlistId && wl.User.Auth0Id == userId);
 
-            if (wishlist == null) return null;
+            if (wishlist == null) return new OperationResult<WishDTO>()
+            {
+                Data = null,
+                Status = OperationStatus.FAIL,
+                Message = MessageHelper.EntityNotFoundMessage(typeof(WishList), addWishDTO.WishlistId)
+            };
 
             var wish = new Wish()
             {
@@ -46,7 +55,17 @@ namespace Gifter.Services.Services
             wishlist.Wishes.Add(wish);
             await dbContext.SaveChangesAsync();
 
-            return wish.Id;
+            return new OperationResult<WishDTO>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Data = new WishDTO()
+                {
+                    Id = wish.Id,
+                    Name = wish.Name,
+                    Link = wish.URL,
+                    Price = wish.Price
+                }
+            };
         }
 
         /// <summary>
@@ -57,9 +76,11 @@ namespace Gifter.Services.Services
         /// <returns> true if deleted. False if wish could not be found for given userId.</returns>
         /// <exception cref="DbUpdateException"></exception>
         /// <exception cref="DbUpdateConcurrencyException"></exception>
-        public async Task<bool> DeleteAsync(int id, string userId)
+        public async Task<OperationResult<bool>> DeleteAsync(int id, string userId)
         {
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+
+            var operatinResult = new OperationResult<bool>();
 
             var wish = await dbContext.Wishes
                 .Include(w => w.WishList)
@@ -67,7 +88,13 @@ namespace Gifter.Services.Services
                 .Include(w => w.Image)
                 .FirstOrDefaultAsync(w => w.Id == id && w.WishList.User.Auth0Id == userId);
 
-            if (wish == null) return false;
+            if (wish == null)
+                return new OperationResult<bool>()
+                {
+                    Status = OperationStatus.FAIL,
+                    Message = $"{nameof(Wish)} with id = {id} not found.",
+                    Data = false
+                };
 
             //Check if there is image to be deleted from filesystem
             var imageToDeletePath = wish.Image?.Path;
@@ -77,21 +104,44 @@ namespace Gifter.Services.Services
 
             if (imageToDeletePath != null) filesService.Delete(imageToDeletePath);
 
-            return true;
+            return new OperationResult<bool>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Data = true,
+            };
         }
 
-        public async Task<WishDTO> GetAsync(int id, string userId)
+        /// <summary>
+        /// Gets wish for given id.
+        /// </summary>
+        /// <param name="id">Id of wish.</param>
+        /// <param name="userId">Id of user.</param>
+        /// <returns>Operation result Success, when Wish with given id found. Otherwise operation result Fail.</returns>
+        public async Task<OperationResult<WishDTO>> GetAsync(int id, string userId)
         {
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+
             var wish = await dbContext.Wishes
-          .Include(w => w.WishList)
-          .ThenInclude(wl => wl.User)
-          .FirstOrDefaultAsync(w => w.Id == id && w.WishList.User.Auth0Id == userId);
+            .Include(w => w.WishList)
+            .ThenInclude(wl => wl.User)
+            .FirstOrDefaultAsync(w => w.Id == id && w.WishList.User.Auth0Id == userId);
 
-            //Should I include Image ? 
-
-            return wish != null ? new WishDTO() { Id = wish.Id, Name = wish.Name, Link = wish.URL, Price = wish.Price } : null;
+            return wish != null ? new OperationResult<WishDTO>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Data = new WishDTO()
+                {
+                    Id = wish.Id,
+                    Name = wish.Name,
+                    Link = wish.URL,
+                    Price = wish.Price
+                },
+            } : new OperationResult<WishDTO>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = $"{nameof(Wish)} with id = {id} not found.",
+                Data = null
+            };
         }
     }
-
-
 }

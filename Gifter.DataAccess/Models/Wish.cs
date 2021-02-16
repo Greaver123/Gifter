@@ -13,7 +13,7 @@ namespace Gifter.DataAccess.Models
         public string URL { get; set; }
 
         [DataType(DataType.Currency)]
-        public double Price { get; set; }
+        public double? Price { get; set; }
 
         public int WishListId { get; set; }
 

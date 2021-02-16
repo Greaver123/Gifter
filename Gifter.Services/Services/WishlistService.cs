@@ -29,8 +29,8 @@ namespace Gifter.Services.Services
             if (user == null)
             {
                 operationResult.Message = "User with given id does not exist.";
-                operationResult.Status = OperationStatus.Fail;
-                operationResult.Payload = null;
+                operationResult.Status = OperationStatus.FAIL;
+                operationResult.Data = null;
 
                 return operationResult;
             }
@@ -41,12 +41,12 @@ namespace Gifter.Services.Services
             var entitiesAffected = await dbContext.SaveChangesAsync();
 
             operationResult.Message = "Wishlist created";
-            operationResult.Status = OperationStatus.Success;
+            operationResult.Status = OperationStatus.SUCCESS;
 
             return new OperationResult<WishlistCreateDTO>()
             {
-                Payload = new WishlistCreateDTO() { Id = wishlist.Id, Title = wishlist.Name },
-                Status = OperationStatus.Success,
+                Data = new WishlistCreateDTO() { Id = wishlist.Id, Title = wishlist.Name },
+                Status = OperationStatus.SUCCESS,
                 Message = "Wishlist Created"
             };
 

@@ -53,7 +53,7 @@ namespace Gifter.Controllers
             {
                 var operationResult = await wishlistService.CreateWishlist(wishlistDTO.Title, User.SubjectId());
 
-                return CreatedAtAction(nameof(Get), new { id = operationResult.Payload.Id }, operationResult.Payload);
+                return CreatedAtAction(nameof(Get), new { id = operationResult.Data.Id }, operationResult.Data);
             }
 
             return BadRequest();

@@ -54,7 +54,7 @@ namespace Gifter.Services.Tests
         {
             var result = await wishService.DeleteAsync(1, "userAuthId3");
 
-            Assert.IsTrue(result);
+            Assert.IsTrue(result.Data);
             Assert.AreEqual(1, DbContext.Wishes.Count());
         }
 
@@ -75,7 +75,7 @@ namespace Gifter.Services.Tests
             var result = await wishService.DeleteAsync(1, UserAuthId);
 
             //Assert
-            Assert.IsTrue(result);
+            Assert.IsTrue(result.Data);
             Assert.AreEqual(1, DbContext.Wishes.Count());
             Assert.IsFalse(File.Exists(fullFilePath));
         }
@@ -90,10 +90,10 @@ namespace Gifter.Services.Tests
             };
 
             //Act
-            var createdWishId = await wishService.AddAsync(addWish, UserAuthId);
+            var operationResult = await wishService.AddAsync(addWish, UserAuthId);
 
             //Assert
-            Assert.AreEqual(3, createdWishId);
+            Assert.AreEqual(3, operationResult.Data.Id);
         }
 
         [TestMethod]
@@ -108,10 +108,10 @@ namespace Gifter.Services.Tests
             };
 
             //Act
-            var createdWishId = await wishService.AddAsync(addWish, UserAuthId);
+            var operationResult = await wishService.AddAsync(addWish, UserAuthId);
 
             //Assert
-            Assert.AreEqual(3, createdWishId);
+            Assert.AreEqual(3, operationResult.Data.Id);
         }
 
         [TestMethod]
@@ -126,10 +126,10 @@ namespace Gifter.Services.Tests
             };
 
             //Act
-            var createdWishId = await wishService.AddAsync(addWish, UserAuthId);
+            var operationResult = await wishService.AddAsync(addWish, UserAuthId);
 
             //Assert
-            Assert.IsNull(createdWishId);
+            Assert.IsNull(operationResult.Data);
         }
     }
 }

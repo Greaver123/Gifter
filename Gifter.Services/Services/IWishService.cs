@@ -1,4 +1,5 @@
-﻿using Gifter.Services.DTOS.Wish;
+﻿using Gifter.Services.Common;
+using Gifter.Services.DTOS.Wish;
 using Gifter.Services.DTOS.Wishlist;
 using System.Threading.Tasks;
 
@@ -14,10 +15,10 @@ namespace Gifter.Services.Services
         /// <returns> True if deleted. False if wish could not be found for given userId.</returns>
         /// <exception cref="DbUpdateException"></exception>
         /// <exception cref="DbUpdateConcurrencyException"></exception>
-        Task<bool> DeleteAsync(int id, string userId);
+        Task<OperationResult<bool>> DeleteAsync(int id, string userId);
 
-        Task<int?> AddAsync(AddWishDTO addWishDTO, string userId);
+        Task<OperationResult<WishDTO>> AddAsync(AddWishDTO addWishDTO, string userId);
 
-        Task<WishDTO> GetAsync(int id, string userId);
+        Task<OperationResult<WishDTO>> GetAsync(int id, string userId);
     }
 }

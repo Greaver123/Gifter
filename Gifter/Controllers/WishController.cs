@@ -1,13 +1,14 @@
 ﻿using Gifter.Extensions;
 using Gifter.Services.DTOS.Wish;
-using Gifter.Services.DTOS.Wishlist;
 using Gifter.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
 namespace Gifter.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class WishController : ControllerBase
@@ -24,29 +25,29 @@ namespace Gifter.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            return await wishService.DeleteAsync(id, this.HttpContext.User.SubjectId()) ? Ok() : NotFound();
+            var operationResult = await wishService.DeleteAsync(id, this.HttpContext.User.SubjectId());
+
+            return operationResult.Data ? Ok(operationResult) : NotFound(operationResult);
         }
 
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Get([FromRoute]int id)
+        public async Task<IActionResult> Get([FromRoute] int id)
         {
-            var result = await wishService.GetAsync(id, this.HttpContext.User.SubjectId());
+            var operationResult = await wishService.GetAsync(id, this.HttpContext.User.SubjectId());
 
-            return result != null ? Ok(result) : NotFound();
+            return operationResult.Data != null ? Ok(operationResult) : NotFound(operationResult);
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Post([FromBody] AddWishDTO wishDTO)
         {
-            var result = await wishService.AddAsync(wishDTO, this.HttpContext.User.SubjectId());
+            var OperationResult = await wishService.AddAsync(wishDTO, this.HttpContext.User.SubjectId());
 
-            return result.HasValue ? CreatedAtAction(nameof(Get),
-                new { id = result.Value},
-                new { id = result.Value }) : BadRequest();
+            return OperationResult.Data != null ? CreatedAtAction(nameof(Get), new { id = OperationResult.Data.Id }, OperationResult) : NotFound(OperationResult);
         }
     }
 }

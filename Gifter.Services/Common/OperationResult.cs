@@ -1,4 +1,5 @@
 ﻿using Gifter.Services.Constants;
+using System;
 using System.Collections.Generic;
 
 namespace Gifter.Services.Common
@@ -9,9 +10,10 @@ namespace Gifter.Services.Common
         {
             Errors = new List<OperationError>();
         }
-        public string Message { get; internal set; }
-        public OperationStatus Status { get; internal set; }
-        public T Payload { get; internal set; }
+
+        public string Message { get; set; }
+        public string Status { get; set; }
+        public T Data { get; set; }
         public IList<OperationError> Errors { get; set; }
     }
 }

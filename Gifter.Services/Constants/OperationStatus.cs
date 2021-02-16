@@ -1,9 +1,9 @@
 ﻿namespace Gifter.Services.Constants
 {
-    public enum OperationStatus
+    public static class OperationStatus
     {
-        Success,
-        Fail,
-        Error,
+        public const string SUCCESS = "Success";
+        public const string FAIL = "Fail";
+        public const string ERROR = "Error";
     }
 }
