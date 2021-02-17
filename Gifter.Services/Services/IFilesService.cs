@@ -40,5 +40,14 @@ namespace Gifter.Services.Services
         /// <exception cref="FormatException">Thrown when formFile is not a image.</exception>
         /// <exception cref="FileSizeException">Thron when size of file exceed max size.</exception>
         Task<string> StoreImageAsync(IFormFile formFile, string dirName);
+
+        /// <summary>
+        /// Create directory for given wishlist and user.
+        /// </summary>
+        /// <param name="name">Name of folder</param>
+        /// <exception cref="ArgumentNullException">Thrown when path is null, empty or whitespace.</exception>
+        /// <exception cref="ArgumentException">Thrown when folder name is invalid</exception>
+        /// <returns>Full path when directory created successful.</returns>
+        string CreateDirectoryForWishlist(string wishlistId, string userId);
     }
 }

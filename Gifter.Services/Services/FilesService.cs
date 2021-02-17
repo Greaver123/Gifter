@@ -25,6 +25,24 @@ namespace Gifter.Services.Services
         }
 
         /// <summary>
+        /// Create directory for given path.
+        /// </summary>
+        /// <param name="name">Name of folder</param>
+        /// <exception cref="ArgumentNullException">Thrown when path is null, empty or whitespace.</exception>
+        /// <exception cref="ArgumentException">Thrown when folder name is invalid</exception>
+        /// <returns>Full path when directory created successful.</returns>
+        public string CreateDirectoryForWishlist(string name, string userId)
+        {
+            var userDirPath = $"{options.BaseDirectory}\\{userId}";
+            var fullDirPath = $"{userDirPath}\\{name}";
+
+            Guard.IsValidDirName(userId);
+            Guard.IsValidDirName(name);
+
+            return Directory.CreateDirectory(fullDirPath).FullName;
+        }
+
+        /// <summary>
         /// Creates image in users directory with random unique name.
         /// </summary>
         /// <param name="formFile">FormFile object</param>

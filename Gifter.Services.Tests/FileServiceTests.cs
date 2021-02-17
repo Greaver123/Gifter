@@ -1,4 +1,5 @@
-﻿using Gifter.Common.Exceptions;
+﻿using Gifter.Common;
+using Gifter.Common.Exceptions;
 using Gifter.Common.Options;
 using Gifter.DataAccess.Models;
 using Gifter.Services.Services;
@@ -133,18 +134,18 @@ namespace Gifter.Services.Tests
                 }
 
                 await DbContext.SaveChangesAsync();
-               
+
                 Assert.AreEqual(3, DbContext.Images.Select(i => i).Count());
                 var result = await filesService.DeleteUnassignedImages(USERAUTHID);
-                
+
                 Assert.IsTrue(result);
                 Assert.AreEqual(3, Directory.GetFiles(FullUserDirPath).Count());
 
                 var expected = new string[3];
-                Array.Copy(filesPath, expected,3);
+                Array.Copy(filesPath, expected, 3);
 
                 //Check if delted correct files
-                Assert.AreEqual(3, Directory.GetFiles(FullUserDirPath).Where(file => expected.Contains(file)).Count(),"Deleted wrong files");
+                Assert.AreEqual(3, Directory.GetFiles(FullUserDirPath).Where(file => expected.Contains(file)).Count(), "Deleted wrong files");
             }
         }
 
@@ -173,6 +174,87 @@ namespace Gifter.Services.Tests
             Assert.IsTrue(filesPaths.Length == count);
 
             return filesPaths;
+        }
+
+        [TestMethod]
+        public void CreateDirectoryForUser_PathDoesNotExists_ReturnsFullPath()
+        {
+            string folderName = "abcdef";
+            string userId = "bgdb1451tgfdg";
+
+            var fullPathResult = filesService.CreateDirectoryForWishlist(folderName, userId);
+            var expectedPath = $"{BASEDESTPATH}\\{userId}\\{folderName}";
+
+            Assert.AreEqual(expectedPath, fullPathResult);
+
+        }
+
+        [TestMethod]
+        public void CreateDirectoryForUser_PathAlreadyExists_ReturnsFullPath()
+        {
+            string folderName = "abcdef";
+            string userId = "bgdb1451tgfdg";
+
+            var fullPathExpected = Directory.CreateDirectory($"{BASEDESTPATH}\\{userId}\\{folderName}").FullName;
+
+            var fullPathActual = filesService.CreateDirectoryForWishlist(folderName, userId);
+
+            Assert.AreEqual(fullPathExpected, fullPathActual);
+        }
+
+        [TestMethod]
+        public void CreateDirectoryForUser_InvalidCharactersInFolderName_ThrowsException()
+        {
+            string folderName = "abcdef";
+            string userId = "bgdb1451tgfdg...";
+
+            Assert.ThrowsException<ArgumentException>(() =>
+            {
+                var fullPathActual = filesService.CreateDirectoryForWishlist(folderName, userId);
+            });
+        }
+
+        [TestMethod]
+        public void IsValidFolderName_ValidFolder()
+        {
+            Guard.IsValidDirName("aabbccdd");
+            Guard.IsValidDirName("aabb ccdd");
+            Guard.IsValidDirName("aabb     ccdd");
+            Guard.IsValidDirName("aabb.ccdd");
+            Guard.IsValidDirName("_aabb.ccdd");
+            Guard.IsValidDirName("_aabb.ccdd..txt");
+        }
+
+        [TestMethod]
+        public void IsValidFolderName_InvalidFolderName_ThrownsArgumentException()
+        {
+            var folderNames = new string[] {
+                null,
+                "",
+                "       ",
+                "       .",
+                "       ..",
+                "aabbccdd/",
+                "aabbccdd\\",
+                "aabbccdd:",
+                "aabbccdd|",
+                "aabbccdd*",
+                "aabbccdd?",
+                "aabbccdd\"",
+                "aabbccdd.",
+                "aabbccdd..",
+                "./\\:|*?\"..",
+                "aab/\\ *|?. .. bccdd.",
+            };
+
+            foreach (var name in folderNames)
+            {
+                Assert.ThrowsException<ArgumentException>(() =>
+                {
+                    Guard.IsValidDirName(name);
+
+                }, $"Folder name: \"{name}\"");
+            }
         }
 
         //[TestCleanup]
