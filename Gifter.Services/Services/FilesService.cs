@@ -36,10 +36,17 @@ namespace Gifter.Services.Services
             var userDirPath = $"{options.BaseDirectory}\\{userId}";
             var fullDirPath = $"{userDirPath}\\{name}";
 
-            Guard.IsValidDirName(userId);
-            Guard.IsValidDirName(name);
+            try
+            {
+                Guard.IsValidDirName(userId);
+                Guard.IsValidDirName(name);
 
-            return Directory.CreateDirectory(fullDirPath).FullName;
+                return Directory.CreateDirectory(fullDirPath).FullName;
+            }
+            catch (Exception ex)
+            {
+                throw new FileServiceException(ex.Message, ex);
+            }
         }
 
         /// <summary>

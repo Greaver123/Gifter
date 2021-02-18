@@ -7,7 +7,7 @@ namespace Gifter.Services.DTOS.Wishlist
         public int Id { get; set; }
 
         [Required]
-        [StringLength(maximumLength: 20, MinimumLength = 1)]
+        [StringLength(maximumLength: 50, MinimumLength = 1)]
         public string Title { get; set; }
     }
 }

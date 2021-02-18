@@ -1,10 +1,13 @@
-﻿using Gifter.DataAccess;
+﻿using Gifter.Common;
+using Gifter.Common.Exceptions;
+using Gifter.DataAccess;
 using Gifter.DataAccess.Models;
 using Gifter.Services.Common;
 using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
 using Gifter.Services.DTOS.Wishlist;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,34 +17,72 @@ namespace Gifter.Services.Services
     public class WishlistService : IWishlistService
     {
         private readonly GifterDbContext dbContext;
+        private readonly IFilesService filesService;
 
-        public WishlistService(GifterDbContext dbContext)
+        public WishlistService(GifterDbContext dbContext, IFilesService filesService)
         {
             this.dbContext = dbContext;
+            this.filesService = filesService;
         }
 
         public async Task<OperationResult<WishlistCreateDTO>> CreateWishlist(string title, string userId)
         {
-            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Auth0Id == userId);
+            Guard.IsNullEmptyOrWhiteSpace(title, nameof(title));
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
 
+            var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Auth0Id == userId);
             var operationResult = new OperationResult<WishlistCreateDTO>();
 
             if (user == null)
-            {
-                operationResult.Message = "User with given id does not exist.";
-                operationResult.Status = OperationStatus.FAIL;
-                operationResult.Data = null;
-
-                return operationResult;
-            }
+                return new OperationResult<WishlistCreateDTO>
+                {
+                    Message = "Internal error: Could not retrive user info.",
+                    Status = OperationStatus.ERROR,
+                    Data = null
+                };
 
             var wishlist = new WishList() { Name = title, User = user };
             dbContext.Wishlists.Add(wishlist);
 
-            var entitiesAffected = await dbContext.SaveChangesAsync();
+            try
+            {
+                await dbContext.SaveChangesAsync();
 
-            operationResult.Message = "Wishlist created";
-            operationResult.Status = OperationStatus.SUCCESS;
+                //Create directory for wishlist images
+                filesService.CreateDirectoryForWishlist(wishlist.Id.ToString(), userId);
+            }
+            catch (Exception ex)
+            {
+                var operationErrorResult = new OperationResult<WishlistCreateDTO>()
+                {
+                    Status = OperationStatus.ERROR,
+                    Message = "Internal error: Could not save Wishlist to database.",
+                    Data = null
+                };
+
+                if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
+                {
+                    return operationErrorResult;
+                }
+                else if (ex is FileServiceException)
+                {
+                    //Something went wrong when saving creating directory, so delete Wishlist entry from db
+                    try
+                    {
+                        dbContext.Wishlists.Remove(wishlist);
+                        await dbContext.SaveChangesAsync();
+                    }
+                    catch(DbUpdateException)
+                    {
+                        //LOG that Could not make cleanup after FileServiceExcepion
+                    }
+
+                    return operationErrorResult;
+                }
+
+                //Bubble up rest to handle it in higher lvl
+                throw;
+            }
 
             return new OperationResult<WishlistCreateDTO>()
             {
@@ -49,7 +90,6 @@ namespace Gifter.Services.Services
                 Status = OperationStatus.SUCCESS,
                 Message = "Wishlist Created"
             };
-
         }
 
         public async Task<bool> DeleteWishlist(int id, string userId)
@@ -73,8 +113,8 @@ namespace Gifter.Services.Services
         {
             var wishlist = await dbContext.Wishlists
                 .Include(w => w.User)
-                .Include(w=>w.Wishes)
-                .Include(w=>w.GiftGroup)
+                .Include(w => w.Wishes)
+                .Include(w => w.GiftGroup)
                 .FirstOrDefaultAsync(w => w.User.Auth0Id == userId && w.Id == wishlistEditDTO.Id);
 
             //SET GIFTGROUP
@@ -82,9 +122,9 @@ namespace Gifter.Services.Services
             wishlist.GiftGroup = giftgroup;
 
             //ADD NEW GIFTS OR UPDATE
-            if(wishlist.Wishes != null)
+            if (wishlist.Wishes != null)
             {
-                foreach(var wish in wishlistEditDTO.Wishes)
+                foreach (var wish in wishlistEditDTO.Wishes)
                 {
                     if (wish.IsNew)
                     {
@@ -93,8 +133,8 @@ namespace Gifter.Services.Services
                     else
                     {
                         var giftToEdit = wishlist.Wishes.FirstOrDefault(g => g.Id == wish.Id);
-                       
-                        if(giftToEdit != null)
+
+                        if (giftToEdit != null)
                         {
                             giftToEdit.Name = wish.Name;
                             giftToEdit.URL = wish.Link;
