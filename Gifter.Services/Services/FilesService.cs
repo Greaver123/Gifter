@@ -144,5 +144,10 @@ namespace Gifter.Services.Services
             Guard.IsValidPath(path);
             File.Delete(path);
         }
+
+        public void DeleteWishlist(int id, string userId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

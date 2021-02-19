@@ -1,4 +1,5 @@
 ﻿using Gifter.Extensions;
+using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wishlist;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -36,11 +37,11 @@ namespace Gifter.Controllers
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<WishlistDTO>> Get([FromRoute]int id)
+        public async Task<ActionResult<WishlistDTO>> Get([FromRoute] int id)
         {
             var wishlist = await wishlistService.GetWishlist(id, User.SubjectId());
 
-            return wishlist != null ? Ok(wishlist): NotFound();
+            return wishlist != null ? Ok(wishlist) : NotFound();
         }
 
         // POST api/<WishlistController>
@@ -49,41 +50,35 @@ namespace Gifter.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<WishlistCreateDTO>> Post([FromBody] WishlistCreateDTO wishlistDTO)
         {
-            if (ModelState.IsValid)
-            {
-                var operationResult = await wishlistService.CreateWishlist(wishlistDTO.Title, User.SubjectId());
+            var operationResult = await wishlistService.CreateWishlist(wishlistDTO.Title, User.SubjectId());
 
-                return CreatedAtAction(nameof(Get), new { id = operationResult.Data.Id }, operationResult.Data);
-            }
-
-            return BadRequest();
+            return CreatedAtAction(nameof(Get), new { id = operationResult.Data.Id }, operationResult);
         }
 
         // PUT api/<WishlistController>/5
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Put([FromBody]WishlistEditDTO wishlistEditDTO )
+        public async Task<IActionResult> Put([FromBody] WishlistEditDTO wishlistEditDTO)
         {
-            if (ModelState.IsValid)
-            {
-                await wishlistService.EditWishlist(wishlistEditDTO, User.SubjectId());
+            var operationResult = await wishlistService.BulkEditWishlist(wishlistEditDTO, User.SubjectId());
 
-                return Ok();
-            }
-
-            return BadRequest();
+            if (operationResult.Status == OperationStatus.FAIL) return NotFound(operationResult);
+           
+            return Ok(operationResult);
         }
 
         // DELETE api/<WishlistController>/5
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var isDeleted = await wishlistService.DeleteWishlist(id, User.SubjectId());
+            var operationResult = await wishlistService.DeleteWishlist(id, User.SubjectId());
 
-            return isDeleted ? NoContent() : NotFound();
+            if (operationResult.Status == OperationStatus.FAIL) return NotFound(operationResult);
+
+            return Ok(operationResult);
         }
     }
 }

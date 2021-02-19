@@ -6,6 +6,7 @@ using Gifter.Services.Common;
 using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
 using Gifter.Services.DTOS.Wishlist;
+using Gifter.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -56,7 +57,7 @@ namespace Gifter.Services.Services
                 var operationErrorResult = new OperationResult<WishlistCreateDTO>()
                 {
                     Status = OperationStatus.ERROR,
-                    Message = "Internal error: Could not save Wishlist to database.",
+                    Message = MessageHelper.CreateOperationErrorMessage(nameof(WishList), OperationType.create),
                     Data = null
                 };
 
@@ -72,7 +73,7 @@ namespace Gifter.Services.Services
                         dbContext.Wishlists.Remove(wishlist);
                         await dbContext.SaveChangesAsync();
                     }
-                    catch(DbUpdateException)
+                    catch (DbUpdateException)
                     {
                         //LOG that Could not make cleanup after FileServiceExcepion
                     }
@@ -88,34 +89,86 @@ namespace Gifter.Services.Services
             {
                 Data = new WishlistCreateDTO() { Id = wishlist.Id, Title = wishlist.Name },
                 Status = OperationStatus.SUCCESS,
-                Message = "Wishlist Created"
+                Message = MessageHelper.CreateOperationSuccessMessage(nameof(WishList), OperationType.create)
             };
         }
 
-        public async Task<bool> DeleteWishlist(int id, string userId)
+        public async Task<OperationResult<object>> DeleteWishlist(int id, string userId)
         {
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+
             var wishlist = await dbContext.Wishlists
                 .Include(w => w.User)
                 .FirstOrDefaultAsync(w => w.Id == id && w.User.Auth0Id == userId);
 
-            if (wishlist != null)
+            if (wishlist == null) return new OperationResult<object>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = MessageHelper.CreateEntityNotFoundMessage(nameof(WishList), id),
+            };
+
+            try
             {
                 dbContext.Wishlists.Remove(wishlist);
                 await dbContext.SaveChangesAsync();
+                
+                filesService.DeleteWishlist(wishlist.Id, userId);
+              
+            }
+            catch (Exception ex)
+            {
+                if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
+                {
+                    return new OperationResult<object>()
+                    {
+                        Status = OperationStatus.ERROR,
+                        Message = MessageHelper.CreateOperationErrorMessage(nameof(WishList), OperationType.delete),
+                    };
+                }
+                else if(ex is FileServiceException)
+                {
+                    //Log and return success and for now ignore. Most important is that entry from db is deleted.
+                    return new OperationResult<object>()
+                    {
+                        Status = OperationStatus.SUCCESS,
+                        Message = MessageHelper.CreateOperationSuccessMessage(nameof(WishList), OperationType.delete),
+                    };
+                }
 
-                return true;
+                throw;
             }
 
-            return false;
+            return new OperationResult<object>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Message = MessageHelper.CreateOperationSuccessMessage(nameof(WishList), OperationType.delete),
+            };
         }
 
-        public async Task<bool> EditWishlist(WishlistEditDTO wishlistEditDTO, string userId)
+        /// <summary>
+        /// Bulk edit for Wishlist
+        /// </summary>
+        /// <param name="wishlistEditDTO">Id of Wishlist</param>
+        /// <param name="userId">Id of wishlist owner</param>
+        /// <returns>OperationResult "Fail" if wishlist not found.</returns>
+        public async Task<OperationResult<WishlistBulkEditDTO>> BulkEditWishlist(WishlistEditDTO wishlistEditDTO, string userId)
         {
+            Guard.IsNull(wishlistEditDTO, nameof(wishlistEditDTO));
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+
             var wishlist = await dbContext.Wishlists
                 .Include(w => w.User)
                 .Include(w => w.Wishes)
                 .Include(w => w.GiftGroup)
                 .FirstOrDefaultAsync(w => w.User.Auth0Id == userId && w.Id == wishlistEditDTO.Id);
+
+            if (wishlist == null)
+                return new OperationResult<WishlistBulkEditDTO>
+                {
+                    Message = MessageHelper.CreateEntityNotFoundMessage(nameof(WishList), wishlistEditDTO.Id),
+                    Status = OperationStatus.FAIL,
+                    Data = null
+                };
 
             //SET GIFTGROUP
             var giftgroup = await dbContext.GiftGroups.FirstOrDefaultAsync(g => g.Id == wishlistEditDTO.Id);
@@ -144,9 +197,29 @@ namespace Gifter.Services.Services
                 }
             }
 
-            await dbContext.SaveChangesAsync();
+            try
+            {
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
+                {
+                    return new OperationResult<WishlistBulkEditDTO>()
+                    {
+                        Status = MessageHelper.CreateOperationErrorMessage(nameof(WishList), OperationType.update),
+                        Data = null,
+                    };
+                }
+                throw;
+            }
 
-            return true;
+            return new OperationResult<WishlistBulkEditDTO>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Message = $"{nameof(WishList)} updated successful.",
+                Data = new WishlistBulkEditDTO() { Id = wishlist.Id }
+            };
         }
 
         public async Task<WishlistDTO> GetWishlist(int id, string userid)
