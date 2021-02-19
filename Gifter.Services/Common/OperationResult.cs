@@ -8,12 +8,12 @@ namespace Gifter.Services.Common
     {
         public OperationResult()
         {
-            Errors = new List<OperationError>();
+            Errors = new Dictionary<string, List<string>>();
         }
 
         public string Message { get; set; }
         public string Status { get; set; }
         public T Data { get; set; }
-        public IList<OperationError> Errors { get; set; }
+        public IDictionary<string, List<string>> Errors { get; set; }
     }
 }

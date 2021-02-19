@@ -1,10 +1,12 @@
 using Gifter.Common.Options;
 using Gifter.DataAccess;
+using Gifter.Services.Common;
+using Gifter.Services.Constants;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,7 +40,33 @@ namespace Gifter
             services.AddScoped<IFilesService, FilesService>();
             services.AddScoped<IWishService, WishService>();
             services.AddOptions<StoreOptions>().Bind(Configuration.GetSection(StoreOptions.Store));
+            services.Configure<ApiBehaviorOptions>(apiBevaviorOptions =>
+            {
+                apiBevaviorOptions.InvalidModelStateResponseFactory = actionContext =>
+                {
+                    var errors = new Dictionary<string, List<string>>();
 
+                    foreach (var modelStateKey in actionContext.ModelState.Keys)
+                    {
+                        var errorsList = new List<string>();
+
+                        foreach (var error in actionContext.ModelState[modelStateKey].Errors)
+                        {
+                            errorsList.Add(error.ErrorMessage);
+                        }
+
+                        if (errorsList.Count > 0) errors.Add(modelStateKey.ToLower(), errorsList);
+                    }
+
+                    return new BadRequestObjectResult(new OperationResult<object>()
+                    {
+                        Message = "One or more validation errors occured.",
+                        Status = OperationStatus.FAIL,
+                        Data = null,
+                        Errors = errors
+                    });
+                };
+            });
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -67,7 +95,7 @@ namespace Gifter
                 });
             });
 
-            services.AddSwaggerGen(c=>
+            services.AddSwaggerGen(c =>
             {
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
                 {
