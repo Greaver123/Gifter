@@ -26,29 +26,30 @@ namespace Gifter.Controllers
 
         // GET: api/<WishlistController>
         [HttpGet]
-        public async Task<IEnumerable<WishlistPreviewDTO>> Get()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> Get()
         {
-            var wishlists = await wishlistService.GetWishlists(User.SubjectId());
+            var operationResult = await wishlistService.GetWishlists(User.SubjectId());
 
-            return wishlists;
+            return Ok(operationResult);
         }
 
         // GET api/<WishlistController>/5
         [HttpGet("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<WishlistDTO>> Get([FromRoute] int id)
+        public async Task<IActionResult> Get([FromRoute] int id)
         {
-            var wishlist = await wishlistService.GetWishlist(id, User.SubjectId());
+            var operationResult = await wishlistService.GetWishlist(id, User.SubjectId());
 
-            return wishlist != null ? Ok(wishlist) : NotFound();
+            return operationResult.Status == OperationStatus.SUCCESS? Ok(operationResult) : NotFound(operationResult);
         }
 
         // POST api/<WishlistController>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<WishlistCreateDTO>> Post([FromBody] WishlistCreateDTO wishlistDTO)
+        public async Task<IActionResult> Post([FromBody] WishlistCreateDTO wishlistDTO)
         {
             var operationResult = await wishlistService.CreateWishlist(wishlistDTO.Title, User.SubjectId());
 
@@ -63,9 +64,7 @@ namespace Gifter.Controllers
         {
             var operationResult = await wishlistService.BulkEditWishlist(wishlistEditDTO, User.SubjectId());
 
-            if (operationResult.Status == OperationStatus.FAIL) return NotFound(operationResult);
-           
-            return Ok(operationResult);
+            return operationResult.Status == OperationStatus.SUCCESS ? Ok(operationResult) : NotFound(operationResult);
         }
 
         // DELETE api/<WishlistController>/5
@@ -76,9 +75,7 @@ namespace Gifter.Controllers
         {
             var operationResult = await wishlistService.DeleteWishlist(id, User.SubjectId());
 
-            if (operationResult.Status == OperationStatus.FAIL) return NotFound(operationResult);
-
-            return Ok(operationResult);
+            return operationResult.Status == OperationStatus.SUCCESS ? Ok(operationResult) : NotFound(operationResult);
         }
     }
 }

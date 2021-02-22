@@ -40,10 +40,10 @@ class Wishlists extends Component {
       )
       .then((response) => {
         const wishlistsUpdate = [...this.state.wishlists];
-        wishlistsUpdate.push(response.data);
+        wishlistsUpdate.push(response.data.data);
         this.setState({ wishlists: wishlistsUpdate });
         this.props.history.push({
-          pathname: `${this.props.match.url}/edit/${response.data.id}`,
+          pathname: `${this.props.match.url}/edit/${response.data.data.id}`,
         });
       })
       .catch((error) => {
@@ -113,7 +113,7 @@ class Wishlists extends Component {
       })
       .then((response) => {
         this.setState({ loading: false });
-        this.setState({ wishlists: response.data });
+        this.setState({ wishlists: response.data.data });
       })
       .catch((error) => {
         this.setState({ loading: false });

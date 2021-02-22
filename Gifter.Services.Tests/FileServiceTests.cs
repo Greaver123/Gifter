@@ -125,7 +125,7 @@ namespace Gifter.Services.Tests
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 var filesCount = 6;
-                var filesPath = await CreateTestFilesFromStream(stream, filesCount);
+                var filesPath = await CreateTestFilesFromStream(stream, $"{BASEDESTPATH}\\{USERAUTHID}", filesCount);
 
                 //Create entries with files in Image entity
                 for (int i = 0; i < (filesCount / 2); i++)
@@ -149,16 +149,16 @@ namespace Gifter.Services.Tests
             }
         }
 
-        private async Task<string[]> CreateTestFilesFromStream(Stream stream, int count)
+        private async Task<string[]> CreateTestFilesFromStream(Stream stream, string path, int count)
         {
-            Directory.CreateDirectory(FullUserDirPath);
+            Directory.CreateDirectory(path);
             var filesPaths = new string[count];
 
             //Create files with entires in Image entity
             for (int i = 0; i < count; i++)
             {
                 var imageName = $"image{i}.png";
-                var fullPath = $"{FullUserDirPath}\\{imageName}";
+                var fullPath = $"{path}\\{imageName}";
 
                 using (var fileStream = File.Create(fullPath))
                 {
@@ -170,7 +170,7 @@ namespace Gifter.Services.Tests
                 filesPaths[i] = fullPath;
             }
 
-            Assert.IsTrue(Directory.GetFiles(FullUserDirPath).Length == count);
+            Assert.IsTrue(Directory.GetFiles(path).Length == count);
             Assert.IsTrue(filesPaths.Length == count);
 
             return filesPaths;
@@ -208,7 +208,7 @@ namespace Gifter.Services.Tests
             string folderName = "abcdef";
             string userId = "bgdb1451tgfdg...";
 
-            Assert.ThrowsException<ArgumentException>(() =>
+            Assert.ThrowsException<FileServiceException>(() =>
             {
                 var fullPathActual = filesService.CreateDirectoryForWishlist(folderName, userId);
             });
@@ -255,6 +255,27 @@ namespace Gifter.Services.Tests
 
                 }, $"Folder name: \"{name}\"");
             }
+        }
+
+        [TestMethod]
+        public async Task DeleteWishlistStore_ExistingPath_DeleteSuccess()
+        {
+            var wishlistId = 1;
+            var dir1 = $"{BASEDESTPATH}\\{USERAUTHID}\\{wishlistId}";
+            var dir2 = $"{BASEDESTPATH}\\{USERAUTHID}\\{2}";
+
+            Directory.CreateDirectory(dir1);
+            Directory.CreateDirectory(dir2);
+
+            await CreateTestFilesFromStream(File.OpenRead($"{ImageSrcPath}\\image.png"),dir1,10);
+            await CreateTestFilesFromStream(File.OpenRead($"{ImageSrcPath}\\image.png"), dir2, 10);
+
+            filesService.DeleteWishlistStore(wishlistId.ToString(),USERAUTHID);
+
+            Assert.IsFalse(Directory.Exists(dir1));
+            Assert.IsTrue(Directory.Exists(dir2));
+
+            Directory.Delete(dir2,true);
         }
 
         //[TestCleanup]

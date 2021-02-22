@@ -49,6 +49,12 @@ namespace Gifter.Services.Services
         /// <exception cref="ArgumentException">Thrown when folder name is invalid</exception>
         /// <returns>Full path when directory created successful.</returns>
         string CreateDirectoryForWishlist(string wishlistId, string userId);
-        void DeleteWishlist(int id, string userId);
+
+        /// <summary>
+        /// Deletes wishlist folder with images. 
+        /// </summary>
+        /// <param name="wishlistId">Id/folder name of wishlist.</param>
+        /// <param name="userId">Id/Folder name of user.</param>
+        void DeleteWishlistStore(string wishlistId, string userId);
     }
 }

@@ -43,11 +43,11 @@ class Wishlist extends Component {
       .then((response) => {
         this.setState({ loading: false });
         this.setState({
-          title: response.data.title,
-          wishes: response.data.wishes,
+          title: response.data.data.title,
+          wishes: response.data.data.wishes,
           giftGroup: {
-            name: response.data.giftGroupName ?? 'None',
-            date: response.data.eventDate ?? 'None',
+            name: response.data.data.giftGroupName ?? 'None',
+            date: response.data.data.eventDate ?? 'None',
           },
         });
       })

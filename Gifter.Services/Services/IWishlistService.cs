@@ -8,9 +8,9 @@ namespace Gifter.Services.Services
     public interface IWishlistService
     {
         Task<OperationResult<WishlistCreateDTO>> CreateWishlist(string title, string userId);
-        Task<IEnumerable<WishlistPreviewDTO>> GetWishlists(string userId);
         Task<OperationResult<object>> DeleteWishlist(int id, string userid);
-        Task<WishlistDTO> GetWishlist(int id, string userid);
         Task<OperationResult<WishlistBulkEditDTO>> BulkEditWishlist(WishlistEditDTO wishlistEditDTO, string userId);
+        Task<OperationResult<WishlistDTO>> GetWishlist(int id, string userid);
+        Task<OperationResult<IEnumerable<WishlistPreviewDTO>>> GetWishlists(string userId);
     }
 }

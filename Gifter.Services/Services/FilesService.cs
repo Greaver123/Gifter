@@ -145,9 +145,19 @@ namespace Gifter.Services.Services
             File.Delete(path);
         }
 
-        public void DeleteWishlist(int id, string userId)
+        /// <summary>
+        /// Deletes wishlist folder with images. 
+        /// </summary>
+        /// <param name="id">Id/folder name of wishlist.</param>
+        /// <param name="userId">Id/Folder name of user.</param>
+        public void DeleteWishlistStore(string wishlistId, string userId)
         {
-            throw new NotImplementedException();
+            Guard.IsNullEmptyOrWhiteSpace(wishlistId);
+            Guard.IsNullEmptyOrWhiteSpace(userId);
+            
+            var pathToDelete = $"{options.BaseDirectory}\\{userId}\\{wishlistId}";
+
+            if (Directory.Exists(pathToDelete)) Directory.Delete(pathToDelete, true);
         }
     }
 }

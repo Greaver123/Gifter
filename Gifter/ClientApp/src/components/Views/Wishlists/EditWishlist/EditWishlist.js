@@ -23,12 +23,28 @@ class EditWishlist extends Component {
     loading: false,
   };
 
-  removeWish = (e) => {
+  removeWish = async (e) => {
     const wishId = Number(e.target.parentElement.attributes['data-id'].value);
-    let updatedWishes = [...this.state.wishes].filter(
-      (wish) => wish.id !== wishId
-    );
-    this.setState({ wishes: updatedWishes });
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    axiosDevInstance
+      .delete(`wish/${wishId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          let updatedWishes = [...this.state.wishes].filter(
+            (wish) => wish.id !== wishId
+          );
+          this.setState({ wishes: updatedWishes });
+        } else if (response.status === 404) {
+          //Show message
+        }
+      })
+      .catch((error) => console.error(error));
   };
 
   getLastIndex = (wishes) => {
@@ -43,20 +59,40 @@ class EditWishlist extends Component {
     return lastIndex;
   };
 
-  addWish = () => {
-    let updatedWishes = [...this.state.wishes];
-    let newIndex = updatedWishes.length
-      ? Math.max(...updatedWishes.map((w) => w.id)) + 1
-      : 1;
-    console.log('number', newIndex);
-    updatedWishes.push({
-      id: newIndex,
-      name: '',
-      link: '',
-      price: '',
-      isNew: true,
-    });
-    this.setState({ wishes: updatedWishes });
+  addWish = async () => {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    axiosDevInstance
+      .post(
+        `wish`,
+        {
+          wishlistId: this.state.id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        let updatedWishes = [...this.state.wishes];
+        // let newIndex = updatedWishes.length
+        //   ? Math.max(...updatedWishes.map((w) => w.id)) + 1
+        //   : 1;
+        updatedWishes.push({
+          id: response.data.data.id,
+          name: '',
+          link: '',
+          price: '',
+          isNew: true,
+        });
+        this.setState({ wishes: updatedWishes });
+      })
+      .catch((error) => {
+        console.error(error);
+        //TODO Show message
+      });
   };
 
   onInputChange = (e) => {
@@ -181,8 +217,11 @@ class EditWishlist extends Component {
       .then((response) => {
         this.setState({ loading: false });
         this.setState({
-          title: response.data.title,
-          wishes: response.data.wishes?.map((w) => {
+          title: response.data.data.title,
+          wishes: response.data.data.wishes?.map((w) => {
+            w.name = w.name ?? '';
+            w.link = w.link ?? '';
+            w.price = w.price ?? '';
             w.isNew = false;
             return w;
           }),

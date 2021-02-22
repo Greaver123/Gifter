@@ -112,7 +112,7 @@ namespace Gifter.Services.Services
                 dbContext.Wishlists.Remove(wishlist);
                 await dbContext.SaveChangesAsync();
                 
-                filesService.DeleteWishlist(wishlist.Id, userId);
+                filesService.DeleteWishlistStore(wishlist.Id.ToString(), userId);
               
             }
             catch (Exception ex)
@@ -222,14 +222,22 @@ namespace Gifter.Services.Services
             };
         }
 
-        public async Task<WishlistDTO> GetWishlist(int id, string userid)
+        public async Task<OperationResult<WishlistDTO>> GetWishlist(int id, string userid)
         {
+            Guard.IsNullEmptyOrWhiteSpace(userid);
+
             var wishlist = await dbContext.Wishlists
                 .Include(w => w.Wishes)
                 .Include(w => w.User)
                 .Include(w => w.GiftGroup)
                     .ThenInclude(g => g.Event)
                 .FirstOrDefaultAsync(w => w.User.Auth0Id == userid && id == w.Id);
+
+            if (wishlist == null) return new OperationResult<WishlistDTO>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = MessageHelper.CreateEntityNotFoundMessage(nameof(WishList), id)
+            };
 
             var wishlistDTO = new WishlistDTO() { Wishes = new List<WishDTO>() };
 
@@ -251,11 +259,18 @@ namespace Gifter.Services.Services
                 wishlistDTO.EventDate = wishlist.GiftGroup?.Event?.Date;
             }
 
-            return wishlistDTO;
+            return new OperationResult<WishlistDTO>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Message = MessageHelper.CreateOperationSuccessMessage(nameof(WishList),OperationType.read),
+                Data = wishlistDTO
+            };
         }
 
-        public async Task<IEnumerable<WishlistPreviewDTO>> GetWishlists(string userId)
+        public async Task<OperationResult<IEnumerable<WishlistPreviewDTO>>> GetWishlists(string userId)
         {
+            Guard.IsNullEmptyOrWhiteSpace(userId);
+
             var wishlists = await dbContext.Wishlists
                 .Include(w => w.User)
                 .Where(w => w.User.Auth0Id == userId)
@@ -273,7 +288,12 @@ namespace Gifter.Services.Services
                 });
             }
 
-            return wishlistsDtos;
+            return new OperationResult<IEnumerable<WishlistPreviewDTO>>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Message = MessageHelper.CreateOperationSuccessMessage(nameof(WishList), OperationType.read),
+                Data = wishlistsDtos
+            };
         }
     }
 }
