@@ -1,7 +1,12 @@
-﻿using Gifter.Common.Exceptions;
+﻿using Gifter.Common;
+using Gifter.Common.Exceptions;
 using Gifter.Common.Options;
 using Gifter.DataAccess;
+using Gifter.DataAccess.Models;
+using Gifter.Services.Common;
+using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Image;
+using Gifter.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
@@ -28,43 +33,61 @@ namespace Gifter.Services.Services
             this.filesService = filesService;
         }
 
-        public async Task<bool> UploadAsync(UploadImageDTO uploadImageDTO, string userId)
+        /// <summary>
+        /// Upload file to db and filesystem for given user.
+        /// </summary>
+        /// <param name="uploadImageDTO">Image to be uploaded with wishlist id</param>
+        /// <param name="userId">Id of user</param>
+        /// <returns>OperationResult success if image saved on filesystem and in db. 
+        /// <para>Fail if could not find wish for given id. </para><para> Error if some exception occured durning execution.</para></returns>
+        public async Task<OperationResult<object>> UploadAsync(UploadImageDTO uploadImageDTO, string userId)
         {
-            if (uploadImageDTO == null) throw new ArgumentNullException(nameof(uploadImageDTO));
-            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException($"{nameof(userId)} is null or empty.");
+            Guard.IsNull(uploadImageDTO, nameof(uploadImageDTO));
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
 
-            bool result = false;
+            var wish = await dbContext.Wishes
+                .Include(w => w.WishList)
+                .ThenInclude(wl => wl.User)
+                .FirstOrDefaultAsync(w => w.Id == uploadImageDTO.WishId && w.WishList.User.Auth0Id == userId);
 
+            if (wish == null) return new OperationResult<object>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = MessageHelper.CreateEntityNotFoundMessage(nameof(Wish), uploadImageDTO.WishId),
+            };
+
+            var fileFullPath = string.Empty;
             try
             {
-                var wish = await dbContext.Wishes
-                    .Include(w => w.WishList)
-                        .ThenInclude(wl => wl.User)
-                    .FirstOrDefaultAsync(w => w.Id == uploadImageDTO.WishId && w.WishList.User.Auth0Id == userId);
-
-                if (wish == null) return result;
-
-
-                var fileFullPath = await filesService.StoreImageAsync(uploadImageDTO.ImageFile, userId);
-                result = await imageService.AddImageAsync(uploadImageDTO.WishId, fileFullPath);
+                fileFullPath = await filesService.StoreImageAsync(uploadImageDTO.ImageFile, userId, wish.WishListId);
+                await imageService.AddImageAsync(uploadImageDTO.WishId, fileFullPath);
             }
             catch (Exception ex)
             {
-                // known exceptions
-                if (
-                    ex is FormatException ||
-                    ex is FileSizeException ||
-                    ex is IOException ||
-                    ex is DbUpdateException)
+                var operationFailResult = new OperationResult<object>()
                 {
+                    Status = OperationStatus.ERROR,
+                    Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.create) 
+                };
 
-                    throw new UploadFileException($"Could not upload file. {ex.Message}", ex);
+                if (ex is FileServiceException) 
+                {
+                    return operationFailResult;
                 }
-                //TODO something went wrong. Try again.
+                else if(ex is DbUpdateException || ex is DbUpdateConcurrencyException)
+                {
+                    //File was saved on filesystem so do cleanup and delete that file
+                    File.Delete(fileFullPath);
+                }
+
                 throw;
             }
 
-            return result;
+            return new OperationResult<object>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Message = MessageHelper.CreateOperationSuccessMessage(nameof(Image), OperationType.create)
+            };
         }
 
         /// <summary>
@@ -93,7 +116,7 @@ namespace Gifter.Services.Services
 
             return new DownloadImageDTO()
             {
-                FileExtension = fileExtension.Remove(0,1), //Remove "." from extension string
+                FileExtension = fileExtension.Remove(0, 1), //Remove "." from extension string
                 Image = await filesService.GetStoredImageAsync(wish.Image.Path)
             };
         }

@@ -73,47 +73,67 @@ namespace Gifter.Services.Tests
         {
             using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.png"))
             {
+                var wishlistId = 1;
+                var wishlistPath = $"{FullUserDirPath}\\{wishlistId}";
+                Directory.CreateDirectory(wishlistPath);
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                var result = await filesService.StoreImageAsync(formFile, "testDir");
+                var result = await filesService.StoreImageAsync(formFile, USERAUTHID,1);
                 Assert.IsTrue(File.Exists(result));
+                Directory.Delete(wishlistPath, true);
             }
         }
 
         [TestMethod]
-        public async Task StoreImageAsync_TxtFile_ThrowsFormatException()
+        public async Task StoreImageAsync_WishlistDirDoesNotExist_ThrowsFileServiceException()
+        {
+            using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.png"))
+            {
+                var wishlistId = 1;
+                var wishlistPath = $"{FullUserDirPath}\\{wishlistId}";
+                var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
+                await Assert.ThrowsExceptionAsync<FileServiceException>(async () =>
+                {
+                    var result = await filesService.StoreImageAsync(formFile, USERAUTHID, 1);
+
+                });
+            }
+        }
+
+        [TestMethod]
+        public async Task StoreImageAsync_TxtFile_ThrowsFileServiceException()
         {
             using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.txt"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                await Assert.ThrowsExceptionAsync<FormatException>(async () =>
+                await Assert.ThrowsExceptionAsync<FileServiceException>(async () =>
                 {
-                    var result = await filesService.StoreImageAsync(formFile, "testDir");
+                    var result = await filesService.StoreImageAsync(formFile, USERAUTHID,1);
                 });
             }
         }
 
         [TestMethod]
-        public async Task StoreImageAsync_InvalidCharactersInDirName_ThrowsIOException()
+        public async Task StoreImageAsync_InvalidCharactersInDirName_ThrowsFileServiceException()
         {
             using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.png"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                await Assert.ThrowsExceptionAsync<IOException>(async () =>
+                await Assert.ThrowsExceptionAsync<FileServiceException>(async () =>
                 {
-                    var result = await filesService.StoreImageAsync(formFile, "auth|fdsfsdf");
+                    var result = await filesService.StoreImageAsync(formFile, USERAUTHID,1);
                 });
             }
         }
 
         [TestMethod]
-        public async Task StoreImageAsync_File2Big_ThrowsArgumentException()
+        public async Task StoreImageAsync_File2Big_ThrowsFileServiceException()
         {
             using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image20MB.png"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                await Assert.ThrowsExceptionAsync<FileSizeException>(async () =>
+                await Assert.ThrowsExceptionAsync<FileServiceException>(async () =>
                 {
-                    var result = await filesService.StoreImageAsync(formFile, "testDir");
+                    var result = await filesService.StoreImageAsync(formFile, USERAUTHID,1);
                 });
             }
         }

@@ -33,13 +33,13 @@ namespace Gifter.Services.Services
         /// Creates image in users directory with random unique name.
         /// </summary>
         /// <param name="formFile">FormFile object</param>
-        /// <param name="dirName">Name of directory to store images</param>
+        /// <param name="userId">Name of directory to store images</param>
         /// <returns>Full path to created image.</returns>
         /// <exception cref="IOException">Thrown when file already exists.</exception>
         /// <exception cref="ArgumentNullException">Thrown when formFile or dirName is null/empty or whitespace.</exception>
         /// <exception cref="FormatException">Thrown when formFile is not a image.</exception>
         /// <exception cref="FileSizeException">Thron when size of file exceed max size.</exception>
-        Task<string> StoreImageAsync(IFormFile formFile, string dirName);
+        Task<string> StoreImageAsync(IFormFile formFile, string userId, int wishlistId);
 
         /// <summary>
         /// Create directory for given wishlist and user.

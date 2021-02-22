@@ -53,40 +53,42 @@ namespace Gifter.Services.Services
         /// Creates image in users directory with random unique name.
         /// </summary>
         /// <param name="formFile">FormFile object</param>
-        /// <param name="dirName">Name of directory to store images</param>
+        /// <param name="userId">Name of directory to store images</param>
         /// <returns>Full path to created image.</returns>
         /// <exception cref="IOException">Thrown when file already exists.</exception>
         /// <exception cref="ArgumentNullException">Thrown when formFile or dirName is null/empty or whitespace.</exception>
         /// <exception cref="FormatException">Thrown when formFile is not a image and singature not recognised among suported: PNG, JPG or GIF</exception>
         /// <exception cref="FileSizeException">Thrown when size of file exceed max size.</exception>
-        public async Task<string> StoreImageAsync(IFormFile formFile, string dirName)
+        public async Task<string> StoreImageAsync(IFormFile formFile, string userId, int wishlistId)
         {
-            if (formFile == null) throw new ArgumentNullException(nameof(formFile));
-            if (string.IsNullOrWhiteSpace(dirName)) throw new ArgumentNullException($"{dirName} cannot be null, empty or whitespace.");
-            if (!formFile.IsImage()) throw new FormatException("File is not a image.");
-            if (formFile.Length > options.FileMaxSize) throw new FileSizeException("File is too big.", options.FileMaxSize);
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+            Guard.IsNull(formFile);
 
-            //var name = $"{Path.GetRandomFileName().Replace(".", "")}{DateTime.Now.Ticks}";
-            var name = $"{DateTime.Now.Ticks}";
-            var userDir = $"{this.options.BaseDirectory}\\{dirName}";
-            var extension = formFile.TryGetImageExtension();
-
-            if (extension == null) throw new FormatException("File signature not recognised.");
-            var fileFullpath = $"{userDir}\\{name}{extension}";
-
-            if (File.Exists(fileFullpath)) throw new IOException($"File already exists with given name: {name}.");
-
-            if (!Directory.Exists(userDir))
+            try
             {
-                Directory.CreateDirectory(userDir);
-            }
+                if (!formFile.IsImage()) throw new FormatException("File is not a image.");
+                if (formFile.Length > options.FileMaxSize) throw new FileSizeException("File is too big.", options.FileMaxSize);
 
-            using (var stream = File.Create(fileFullpath))
+                var name = $"{DateTime.Now.Ticks}";
+                var wishlistDir = $"{this.options.BaseDirectory}\\{userId}\\{wishlistId}";
+                var extension = formFile.TryGetImageExtension();
+
+                if (extension == null) throw new FormatException("File signature not recognised.");
+                var fileFullpath = $"{wishlistDir}\\{name}{extension}";
+
+                if (!Directory.Exists(wishlistDir)) throw new IOException($"Directory \"{wishlistDir}\" does not exists.");
+                if (File.Exists(fileFullpath)) throw new IOException($"File already exists with given name: {name}.");
+
+                using (var stream = File.Create(fileFullpath))
+                {
+                    await formFile.CopyToAsync(stream);
+                }
+                return fileFullpath;
+            }
+            catch (Exception ex)
             {
-                await formFile.CopyToAsync(stream);
+                throw new FileServiceException("Internal error. Could not store image.", ex);
             }
-
-            return fileFullpath;
         }
 
         /// <summary>
@@ -154,7 +156,7 @@ namespace Gifter.Services.Services
         {
             Guard.IsNullEmptyOrWhiteSpace(wishlistId);
             Guard.IsNullEmptyOrWhiteSpace(userId);
-            
+
             var pathToDelete = $"{options.BaseDirectory}\\{userId}\\{wishlistId}";
 
             if (Directory.Exists(pathToDelete)) Directory.Delete(pathToDelete, true);
