@@ -21,14 +21,12 @@ namespace Gifter.Services.Tests
         private readonly UploadService uploadService;
         private string ImageSourcePath;
 
-        public UploadServiceTests():base()
+        public UploadServiceTests() : base()
         {
             var filesService = new FilesService(DbContext, StoreOptions);
             var imageService = new ImageService(DbContext, StoreOptions);
             uploadService = new UploadService(DbContext, StoreOptions, imageService, filesService);
             ImageSourcePath = @"C:\Users\pkolo\Repos\Gifter\Gifter.Services.Tests\Images\";
-
-
         }
 
         [TestMethod]
@@ -49,14 +47,14 @@ namespace Gifter.Services.Tests
             DbContext.Wishlists.Add(wishlist);
             DbContext.SaveChanges();
             Directory.CreateDirectory($"{UserDirectory}\\{wishlist.Id}");
-            
+
             //Act
             using (var stream = File.OpenRead($"{ImageSourcePath}\\image.png"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 var result = await uploadService.UploadAsync(new UploadImageDTO() { WishId = 1, ImageFile = formFile }, UserId);
 
-            //Assert
+                //Assert
                 Assert.AreEqual(OperationStatus.SUCCESS, result.Status);
             }
         }
@@ -116,111 +114,121 @@ namespace Gifter.Services.Tests
         }
 
         [TestMethod]
-        public async Task DownloadImage_WishIdExists_ReturnsImageByteArrayAndExtension()
+        public async Task DownloadImage_WishExists_ReturnsOperationResultSuccess()
         {
-            var user = DbContext.Users.FirstOrDefault();
-            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
-            var imageSoruceFullPath = $"{this.ImageSourcePath}\\image.png";
-
-            var wish = DbContext.Wishes.Add(
-                 new Wish()
+            //Arrange
+            var wishlist = new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                Wishes = new List<Wish>(){
+               new Wish()
                  {
-                     WishListId = wishlist.Id,
                      Name = "Test",
                      Price = 9999,
                      Image = new Image()
                      {
                          Path = $"{this.ImageSourcePath}\\image.png"
                      },
-                 });
+                 }
+                }
+            };
 
+            DbContext.Wishlists.Add(wishlist);
             DbContext.SaveChanges();
 
-            var actualResult = await uploadService.DownloadImageAsync(wish.Entity.Id, user.Auth0Id);
-            var expectedImageArray = File.ReadAllBytes(imageSoruceFullPath);
-            
-            Assert.IsNotNull(actualResult.Image);
-            Assert.IsTrue(actualResult.Image.SequenceEqual(expectedImageArray));
-            Assert.AreEqual("png", actualResult.FileExtension);
+            //Act
+            var actualResult = await uploadService.DownloadImageAsync(wishlist.Wishes.First().Id, UserId);
+
+            //Assert
+            Assert.IsNotNull(actualResult.Data.Image);
+            Assert.AreEqual(OperationStatus.SUCCESS, actualResult.Status);
         }
 
         [TestMethod]
-        public async Task DownloadImage_WishIdDontExist_ReturnsNull()
+        public async Task DownloadImage_WishDoesNotExist_ReturnsOperationResultFail()
         {
-            var user = DbContext.Users.FirstOrDefault();
-            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
-            var imageSoruceFullPath = $"{this.ImageSourcePath}\\image.png";
+            //Arrange
+            var wishlist = new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+            };
 
-            var wish = DbContext.Wishes.Add(
-                 new Wish()
+            DbContext.Wishlists.Add(wishlist);
+            DbContext.SaveChanges();
+
+            //Act
+            var actualResult = await uploadService.DownloadImageAsync(9999, UserId);
+
+            //Assert
+            Assert.IsNull(actualResult.Data);
+            Assert.AreEqual(OperationStatus.FAIL, actualResult.Status);
+        }
+
+        [TestMethod]
+        public async Task DownloadImage_ImageDontExistOnFileSystem_ReturnsOperationResultError()
+        {
+            //Arrange
+            var wishlist = new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                Wishes = new List<Wish>()
+                {
+                    new Wish()
+                    {
+                        Name = "Test",
+                        Price = 9999,
+                        Image = new Image()
+                        {
+                            Path = $"{this.ImageSourcePath}\\dontExist.png"
+                        },
+                    }
+                }
+            };
+
+            DbContext.Add(wishlist);
+            DbContext.SaveChanges();
+
+            //Act
+            var actualResult = await uploadService.DownloadImageAsync(wishlist.Wishes.First().Id, UserId);
+
+            //Assert
+            Assert.IsNull(actualResult.Data);
+            Assert.AreEqual(OperationStatus.ERROR, actualResult.Status);
+        }
+
+        [TestMethod]
+        public async Task DownloadImage_NoFileExtension_ReturnsOperationResultError()
+        {
+            //Arrange
+            var wishlist = new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                Wishes = new List<Wish>(){
+               new Wish()
                  {
-                     WishListId = wishlist.Id,
                      Name = "Test",
                      Price = 9999,
                      Image = new Image()
                      {
-                         Path = $"{this.ImageSourcePath}\\image.png"
+                         Path = $"{this.ImageSourcePath}\\image"
                      },
-                 });
+                 }
+                }
+            };
 
+            DbContext.Wishlists.Add(wishlist);
             DbContext.SaveChanges();
 
-            var actualResult = await uploadService.DownloadImageAsync(9999, user.Auth0Id);
+            //Act
+            var actualResult = await uploadService.DownloadImageAsync(wishlist.Wishes.First().Id, UserId);
 
-            Assert.IsNull(actualResult);
-        }
-
-        [TestMethod]
-        public async Task DownloadImage_ImageDontExistOnFileSystem_ThrowsFileNotFoundException()
-        {
-            var user = DbContext.Users.FirstOrDefault();
-            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
-            var imageSoruceFullPath = $"{this.ImageSourcePath}\\image.png";
-
-            var wish = DbContext.Wishes.Add(
-                 new Wish()
-                 {
-                     WishListId = wishlist.Id,
-                     Name = "Test",
-                     Price = 9999,
-                     Image = new Image()
-                     {
-                         Path = $"{this.ImageSourcePath}\\dontExist.png"
-                     },
-                 });
-
-            DbContext.SaveChanges();
-
-            await Assert.ThrowsExceptionAsync<FileNotFoundException>(async () =>
-             {
-                 var actualResult = await uploadService.DownloadImageAsync(wish.Entity.Id, user.Auth0Id);
-             });
-        }
-
-        [TestMethod]
-        public async Task DownloadImage_NoFileExtension_ThrowsFileLoadException()
-        {
-            var user = DbContext.Users.FirstOrDefault();
-            var wishlist = DbContext.Wishlists.FirstOrDefault(w => w.UserId == user.Id);
-            var imageSoruceFullPath = $"{this.ImageSourcePath}\\image";
-
-            var wish = DbContext.Wishes.Add(
-                 new Wish()
-                 {
-                     WishListId = wishlist.Id,
-                     Name = "Test",
-                     Price = 9999,
-                     Image = new Image()
-                     {
-                         Path = imageSoruceFullPath
-                     },
-                 });
-
-            DbContext.SaveChanges();
-
-            await Assert.ThrowsExceptionAsync<FileLoadException>(async () => {
-                var result = await uploadService.DownloadImageAsync(wish.Entity.Id, user.Auth0Id);
-            });
+            //Assert
+            Assert.IsNull(actualResult.Data);
+            Assert.AreEqual(OperationStatus.ERROR, actualResult.Status);
         }
     }
 }

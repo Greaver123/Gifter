@@ -55,20 +55,19 @@ namespace Gifter.Services.Services
         /// <param name="formFile">FormFile object</param>
         /// <param name="userId">Name of directory to store images</param>
         /// <returns>Full path to created image.</returns>
-        /// <exception cref="IOException">Thrown when file already exists.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when formFile or dirName is null/empty or whitespace.</exception>
-        /// <exception cref="FormatException">Thrown when formFile is not a image and singature not recognised among suported: PNG, JPG or GIF</exception>
-        /// <exception cref="FileSizeException">Thrown when size of file exceed max size.</exception>
+        /// <exception cref="FileServiceException">Thrown when could not store image due to corrupted user directory.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="formFile"/> is not a image.</exception>
+        /// <exception cref="FormatException">Thrown when <paramref name="formFile"/> is to big.</exception>
         public async Task<string> StoreImageAsync(IFormFile formFile, string userId, int wishlistId)
         {
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
             Guard.IsNull(formFile);
 
+            if (!formFile.IsImage()) throw new ArgumentException("File is not a image.");
+            if (formFile.Length > options.FileMaxSize) throw new FormatException("File is too big.");
+      
             try
             {
-                if (!formFile.IsImage()) throw new FormatException("File is not a image.");
-                if (formFile.Length > options.FileMaxSize) throw new FileSizeException("File is too big.", options.FileMaxSize);
-
                 var name = $"{DateTime.Now.Ticks}";
                 var wishlistDir = $"{this.options.BaseDirectory}\\{userId}\\{wishlistId}";
                 var extension = formFile.TryGetImageExtension();
@@ -87,7 +86,7 @@ namespace Gifter.Services.Services
             }
             catch (Exception ex)
             {
-                throw new FileServiceException("Internal error. Could not store image.", ex);
+                throw new FileServiceException("Internal error. Could not store image due to corrupted user directory.", ex);
             }
         }
 
@@ -126,12 +125,21 @@ namespace Gifter.Services.Services
         /// </summary>
         /// <param name="imagePath"></param>
         /// <returns>Byte array of image</returns>
-        /// <exception cref="FileNotFoundException">Thrown when file not found</exception>
+        /// <exception cref="FileServiceException">Thrown when could not get image from filesystem.</exception>
         public async Task<byte[]> GetStoredImageAsync(string imagePath)
         {
-            if (!File.Exists(imagePath)) throw new FileNotFoundException();
+            try
+            {
+                Guard.IsNullEmptyOrWhiteSpace(imagePath, nameof(imagePath));
 
-            return await File.ReadAllBytesAsync(imagePath);
+                if (!File.Exists(imagePath)) throw new FileNotFoundException();
+
+                return await File.ReadAllBytesAsync(imagePath);
+            }
+            catch (Exception ex)
+            {
+                throw new FileServiceException("Could not get image from filesystem", ex);
+            }
         }
 
         /// <summary>

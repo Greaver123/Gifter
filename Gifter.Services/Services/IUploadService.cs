@@ -11,11 +11,9 @@ namespace Gifter.Services.Services
         /// Gets image for given wishId.
         /// </summary>
         /// <param name="wishId">Id of wish.</param>
-        /// <returns>Image byte array or null if there is no image for given <paramref name="wishId"/></returns>
-        /// <exception cref="ArgumentException">Thrown when userId is null, empty or whitespace.</exception>
-        /// <exception cref="FileNotFoundException">Thrown when could not find file on filesystem which path is stored in Wish entity.</exception>
-        /// <exception cref="FileLoadException">Thrown when could not load file extension from Image entity path.</exception>
-        Task<DownloadImageDTO> DownloadImageAsync(int wishId, string userId);
+        /// <returns><para>OperationResult "Success" with image in Base64 if image for <paramref name="wishId"/> found.</para> <para> OperationResult "Fail" if Image/Wish not found. </para>
+        /// <para>OperationResult "Error" if file corrupted and could not load file. </para></returns>
+        Task<OperationResult<DownloadImageDTO>> DownloadImageAsync(int wishId, string userId);
 
         /// <summary>
         /// Upload file to db and filesystem for given user.

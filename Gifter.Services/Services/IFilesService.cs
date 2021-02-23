@@ -18,7 +18,7 @@ namespace Gifter.Services.Services
         /// </summary>
         /// <param name="imagePath"></param>
         /// <returns>Byte array of stored image</returns>
-        /// <exception cref="FileNotFoundException">Thrown when file not found</exception>
+        /// <exception cref="FileServiceException">Thrown when could not get image from filesystem.</exception>
         Task<byte[]> GetStoredImageAsync(string imagePath);
 
         /// <summary>
@@ -35,10 +35,9 @@ namespace Gifter.Services.Services
         /// <param name="formFile">FormFile object</param>
         /// <param name="userId">Name of directory to store images</param>
         /// <returns>Full path to created image.</returns>
-        /// <exception cref="IOException">Thrown when file already exists.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when formFile or dirName is null/empty or whitespace.</exception>
-        /// <exception cref="FormatException">Thrown when formFile is not a image.</exception>
-        /// <exception cref="FileSizeException">Thron when size of file exceed max size.</exception>
+        /// <exception cref="FileServiceException">Thrown when could not store image due to corrupted user directory.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="formFile"/> is not a image.</exception>
+        /// <exception cref="FormatException">Thrown when <paramref name="formFile"/> is too big.</exception>
         Task<string> StoreImageAsync(IFormFile formFile, string userId, int wishlistId);
 
         /// <summary>

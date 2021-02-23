@@ -67,17 +67,15 @@ namespace Gifter.Services.Services
                 var operationFailResult = new OperationResult<object>()
                 {
                     Status = OperationStatus.ERROR,
-                    Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.create) 
+                    Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.create)
                 };
 
-                if (ex is FileServiceException) 
-                {
-                    return operationFailResult;
-                }
-                else if(ex is DbUpdateException || ex is DbUpdateConcurrencyException)
+                if (ex is FileServiceException) return operationFailResult;
+                else if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
                 {
                     //File was saved on filesystem so do cleanup and delete that file
                     File.Delete(fileFullPath);
+                    return operationFailResult;
                 }
 
                 throw;
@@ -94,13 +92,11 @@ namespace Gifter.Services.Services
         /// Gets image for given wishId.
         /// </summary>
         /// <param name="wishId">Id of wish.</param>
-        /// <returns>Image byte array or null if there is no image for given <paramref name="wishId"/></returns>
-        /// <exception cref="ArgumentException">Thrown when userId is null, empty or whitespace.</exception>
-        /// <exception cref="FileNotFoundException">Thrown when could not find file on filesystem which path is stored in Wish entity.</exception>
-        /// <exception cref="FileLoadException">Thrown when could not load file extension from Image entity path.</exception>
-        public async Task<DownloadImageDTO> DownloadImageAsync(int wishId, string userId)
+        /// <returns><para>OperationResult "Success" with image in Base64 if image for <paramref name="wishId"/> found.</para> <para> OperationResult "Fail" if Image/Wish not found. </para>
+        /// <para>OperationResult "Error" if file corrupted and could not load file. </para></returns>
+        public async Task<OperationResult<DownloadImageDTO>> DownloadImageAsync(int wishId, string userId)
         {
-            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException($"{nameof(userId)} is null, empty or whitespace.");
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
 
             var wish = await dbContext.Wishes
                 .Include(w => w.WishList)
@@ -108,17 +104,48 @@ namespace Gifter.Services.Services
                 .Include(w => w.Image)
                 .FirstOrDefaultAsync(w => w.Id == wishId && w.WishList.User.Auth0Id == userId);
 
-            if (wish == null || wish.Image == null) return null;
+            if (wish == null || wish.Image == null) return new OperationResult<DownloadImageDTO>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = MessageHelper.CreateEntityNotFoundMessage(nameof(Wish), wishId)
+            };
+
+            if (wish.Image == null) return new OperationResult<DownloadImageDTO>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = $"There is no image for {nameof(Wish)} with id = {wishId}"
+            };
 
             var fileExtension = Path.GetExtension(wish.Image.Path);
 
-            if (string.IsNullOrWhiteSpace(fileExtension)) throw new FileLoadException($"Could not load file extension from filepath: {wish.Image.Path}.");
-
-            return new DownloadImageDTO()
+            if (string.IsNullOrWhiteSpace(fileExtension)) return new OperationResult<DownloadImageDTO>()
             {
-                FileExtension = fileExtension.Remove(0, 1), //Remove "." from extension string
-                Image = await filesService.GetStoredImageAsync(wish.Image.Path)
+                Status = OperationStatus.ERROR,
+                Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.read)
             };
+
+            try
+            {
+                var storedImage = await filesService.GetStoredImageAsync(wish.Image.Path);
+               
+                return new OperationResult<DownloadImageDTO>()
+                {
+                    Status = OperationStatus.SUCCESS,
+                    Data = new DownloadImageDTO()
+                    {
+                        FileExtension = fileExtension.Remove(0, 1), //Remove "." from extension string
+                        Image = "data:image/png;base64," + Convert.ToBase64String(storedImage)
+                    }
+                };
+            }
+            catch (FileServiceException)
+            {
+                return new OperationResult<DownloadImageDTO>()
+                {
+                    Status = OperationStatus.ERROR,
+                    Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.read)
+                };
+            }
         }
     }
 }

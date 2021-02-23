@@ -7,6 +7,7 @@ import Modal from '../../../UI/Modal/Modal';
 import { withAuth0 } from '@auth0/auth0-react';
 import { axiosDevInstance } from '../../../../axios/axios';
 import LoadingIndicator from '../../../UI/LoadingIndicator/LoadingIndicator';
+import { apiStatusCodes } from '../../../../api/constants';
 
 class EditWishlist extends Component {
   state = {
@@ -134,13 +135,20 @@ class EditWishlist extends Component {
     console.log('IMAGE SELECTED');
     console.log(image);
     axiosDevInstance
-      .post('/images/upload', formData, {
+      .post('/image/upload', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
-        console.log(response.data);
+        switch (response.data.status) {
+          case apiStatusCodes.SUCCESS:
+            break;
+          case apiStatusCodes.FAIL:
+          case apiStatusCodes.ERROR:
+            console.log(response.data.data.message);
+            break;
+        }
       })
       .catch((error) => {
         console.log('Could not upload image', error);
@@ -153,23 +161,32 @@ class EditWishlist extends Component {
 
     this.state.wishes.forEach((wish) => {
       axiosDevInstance
-        .get(`/images/${wish.id}`, {
+        .get(`/image/${wish.id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
         .then((response) => {
-          const updatedWishes = [...this.state.wishes];
-          const wishes = updatedWishes.map((w) => {
-            if (w.id == wish.id) {
-              w.image = response.data;
-            }
-            return w;
-          });
-          this.setState({ wishes: wishes });
+          switch (response.data.status) {
+            case apiStatusCodes.SUCCESS:
+              const updatedWishes = [...this.state.wishes];
+              const wishes = updatedWishes.map((w) => {
+                if (w.id == wish.id) {
+                  w.image = response.data.data.image;
+                }
+                return w;
+              });
+              this.setState({ wishes: wishes });
+              break;
+            case apiStatusCodes.FAIL:
+            case apiStatusCodes.ERROR:
+              console.log(response.data.message);
+              break;
+          }
         })
         .catch((error) => {
-          console.log('Could not get image');
+          //TODO
+          console.log(error);
         });
     });
   };
