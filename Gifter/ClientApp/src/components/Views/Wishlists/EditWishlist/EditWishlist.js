@@ -219,6 +219,32 @@ class EditWishlist extends Component {
       });
   };
 
+  deleteImage = async () => {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    console.log('[EditWishList] deleteImage()');
+    // axiosDevInstance
+    //   .delete('/image/delete',{
+    //     headers: {
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //   })
+    //   .then((response) => {
+    //     switch (response.data.status) {
+    //       case apiStatusCodes.SUCCESS:
+    //         break;
+    //       case apiStatusCodes.FAIL:
+    //       case apiStatusCodes.ERROR:
+    //         console.log(response.data.data.message);
+    //         break;
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.log('Could not upload image', error);
+    //   });
+  };
+
   async componentDidMount() {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
@@ -265,6 +291,7 @@ class EditWishlist extends Component {
           image={wish.image}
           changed={this.onInputChange}
           imageSelected={this.uploadImage}
+          deleteImage={this.deleteImage}
         />
       );
     });

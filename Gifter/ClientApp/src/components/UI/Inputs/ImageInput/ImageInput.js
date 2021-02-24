@@ -1,19 +1,23 @@
 import React, { Component } from 'react';
 import classes from './ImageInput.module.css';
-import image from '../../../../assets/images/imagePreview256px.png';
+import defaultImage from '../../../../assets/images/imagePreview256px.png';
+import LoadingIndicator from '../../LoadingIndicator/LoadingIndicator';
+
 class ImageInput extends Component {
   imageInput = React.createRef();
 
   state = {
-    selectedUrl: null,
+    newImageUrl: null,
+    overlay: false,
+    isLoading: false,
+    isUploading: false,
   };
 
-  selectImage = () => {
+  uploadImage = () => {
     if (this.imageInput.current.files.length) {
       const selectedImage = this.imageInput.current.files[0];
-
       const imgUrl = URL.createObjectURL(selectedImage);
-      this.setState({ selectedUrl: imgUrl });
+      this.setState({ newImageUrl: imgUrl });
 
       const imageSelected = this.props?.imageSelected;
 
@@ -23,40 +27,81 @@ class ImageInput extends Component {
     }
   };
 
-  showFileExplorer = () => {
+  deleteImage = () => {
+    this.props.deleteImage();
+    // this.props.deleteImage();
+  };
+
+  selectImage = () => {
     this.imageInput.current.click();
+  };
+
+  toggleOverlay = () => {
+    this.setState((prevState) => ({
+      overlay: !prevState.overlay,
+    }));
+  };
+
+  showOverlay = () => {
+    this.setState({ showOverlay: true });
   };
 
   render() {
     let imageInput = (
-      <input type="image" src={image} alt="image/photo of wish" disabled />
+      <input
+        type="image"
+        src={defaultImage}
+        alt="image/photo of wish"
+        disabled
+      />
     );
+
+    let overlay = (
+      <div className={classes.Overlay}>
+        <div className={classes.OverlayButtons}>
+          <button className={classes.BtnUpload} onClick={this.selectImage}>
+            Select
+          </button>
+          {this.state.newImageUrl != null || this.props.image != null ? (
+            <button className={classes.BtnDelete} onClick={this.deleteImage}>
+              Delete
+            </button>
+          ) : null}
+        </div>
+      </div>
+    );
+
     if (!this.props.displayOnly) {
       imageInput = (
-        <React.Fragment>
+        <div
+          className={classes.ImageInput}
+          onMouseEnter={this.toggleOverlay}
+          onMouseLeave={this.toggleOverlay}
+          onClick={this.showOverlay}
+        >
           <input
             ref={this.imageInput}
             type="file"
-            accept="image/png, image/jpg"
-            onChange={this.selectImage}
+            accept="image/png, image/jpeg, image/gif"
+            onChange={this.uploadImage}
           />
-          <input
+          <img
             type="image"
             src={
-              this.state.selectedUrl
-                ? this.state.selectedUrl
+              this.state.newImageUrl
+                ? this.state.newImageUrl
                 : this.props.image
                 ? this.props.image
-                : image
+                : defaultImage
             }
             alt="image/photo of wish"
-            onClick={this.showFileExplorer}
-          ></input>
-        </React.Fragment>
+          ></img>
+          {this.state.overlay ? overlay : null}
+        </div>
       );
     }
 
-    return <div className={classes.ImageInput}>{imageInput}</div>;
+    return imageInput;
   }
 }
 

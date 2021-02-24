@@ -40,6 +40,7 @@ const Wish = (props) => {
         <ImageInput
           displayOnly={props.displayOnly}
           imageSelected={props.imageSelected}
+          deleteImage={props.deleteImage}
           image={props.image}
           wishId={props.id}
         />
