@@ -104,7 +104,7 @@ namespace Gifter.Services.Services
                 .Include(w => w.Image)
                 .FirstOrDefaultAsync(w => w.Id == wishId && w.WishList.User.Auth0Id == userId);
 
-            if (wish == null || wish.Image == null) return new OperationResult<DownloadImageDTO>()
+            if (wish == null) return new OperationResult<DownloadImageDTO>()
             {
                 Status = OperationStatus.FAIL,
                 Message = MessageHelper.CreateEntityNotFoundMessage(nameof(Wish), wishId)
@@ -146,6 +146,57 @@ namespace Gifter.Services.Services
                     Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.read)
                 };
             }
+        }
+
+        public async Task<OperationResult<object>> DeleteImageFromWish(int imageId, string userId)
+        {
+            //1. Find image to delete
+            var image = await dbContext.Images
+                .Include(i=>i.Wish)
+                .ThenInclude(w=>w.WishList)
+                .ThenInclude(wl=>wl.User)
+                .FirstOrDefaultAsync(i => i.Id == imageId && i.Wish.WishList.User.Auth0Id == userId);
+
+            if (image == null) return new OperationResult<object>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = MessageHelper.CreateEntityNotFoundMessage(nameof(Image), imageId)
+            };
+
+            //2. Delete image from db
+            try
+            {
+                dbContext.Images.Remove(image);
+                await dbContext.SaveChangesAsync();
+                filesService.Delete(image.Path);
+            }
+            catch (Exception ex)
+            {
+                if(ex is DbUpdateException ||  ex is DbUpdateConcurrencyException)
+                {
+                    return new OperationResult<object>()
+                    {
+                        Status = OperationStatus.ERROR,
+                        Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.delete)
+                    };
+                }
+                else if(ex is FileServiceException)
+                {
+                    //Log and do nothing, most important is that it will disaper from UI.
+                    return new OperationResult<object>()
+                    {
+                        Status = OperationStatus.SUCCESS,
+                        Message = MessageHelper.CreateOperationSuccessMessage(nameof(Image), OperationType.delete)
+                    };
+                }
+                throw;
+            }
+
+            return new OperationResult<object>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Message = MessageHelper.CreateOperationSuccessMessage(nameof(Image), OperationType.delete)
+            };
         }
     }
 }

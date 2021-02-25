@@ -30,6 +30,65 @@ namespace Gifter.Services.Tests
         }
 
         [TestMethod]
+        public async Task DeleteImage_WishExistsAndImageDoesNotExist_Fail()
+        {
+            //Arrange
+
+            var wishlist = new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                Wishes = new List<Wish>(){
+                    new Wish(){
+                        Name = "Wish 1",
+                    }
+                }
+            };
+
+            DbContext.Wishlists.Add(wishlist);
+            DbContext.SaveChanges();
+
+            //Act
+            var operationResult = await uploadService.DeleteImageFromWish(131231231, UserId);
+
+            //Assert
+            Assert.AreEqual(OperationStatus.FAIL, operationResult.Status);
+        }
+        [TestMethod]
+        public async Task DeleteImage_WishExistsAndImageExists_Success()
+        {
+            //Arrange
+
+            var wishlist = new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                Wishes = new List<Wish>(){
+                    new Wish(){
+                        Name = "Wish 1",
+                    }
+                }
+            };
+
+            DbContext.Wishlists.Add(wishlist);
+            DbContext.SaveChanges();
+            Directory.CreateDirectory($"{UserDirectory}\\{wishlist.Id}");
+            File.Copy($"{ImageSourcePath}\\image.png", $"{UserDirectory}\\{wishlist.Id}\\image.png");
+
+            DbContext.Images.Add(new Image() { WishId = wishlist.Wishes.First().Id, Path = $"{UserDirectory}\\{wishlist.Id}\\image.png" });
+            DbContext.SaveChanges();
+
+
+            //Act
+            var image = DbContext.Images.FirstOrDefault();
+            var operationResult = await uploadService.DeleteImageFromWish(image.Id, UserId);
+
+            //Assert
+            Assert.AreEqual(0, DbContext.Images.Count());
+            Assert.AreEqual(OperationStatus.SUCCESS, operationResult.Status);
+        }
+
+        [TestMethod]
         public async Task UploadImage_WishExistsAndImageNotUploaded_Success()
         {
             //Arrange
