@@ -42,7 +42,7 @@ namespace Gifter.Services.Services
             {
                 Data = null,
                 Status = OperationStatus.FAIL,
-                Message = MessageHelper.EntityNotFoundMessage(typeof(WishList), addWishDTO.WishlistId)
+                Message = MessageHelper.CreateEntityNotFoundMessage(nameof(WishList), addWishDTO.WishlistId)
             };
 
             var wish = new Wish()
@@ -122,7 +122,8 @@ namespace Gifter.Services.Services
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
 
             var wish = await dbContext.Wishes
-            .Include(w => w.WishList)
+            .Include(w=>w.Image)
+                .Include(w => w.WishList)
             .ThenInclude(wl => wl.User)
             .FirstOrDefaultAsync(w => w.Id == id && w.WishList.User.Auth0Id == userId);
 
@@ -134,7 +135,8 @@ namespace Gifter.Services.Services
                     Id = wish.Id,
                     Name = wish.Name,
                     Link = wish.URL,
-                    Price = wish.Price
+                    Price = wish.Price,
+                    ImageId = wish.Image?.Id
                 },
             } : new OperationResult<WishDTO>()
             {
