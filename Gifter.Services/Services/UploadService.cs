@@ -19,16 +19,13 @@ namespace Gifter.Services.Services
     {
         private readonly GifterDbContext dbContext;
         private readonly StoreOptions options;
-        private readonly IImageService imageService;
         private readonly IFilesService filesService;
 
         public UploadService(GifterDbContext dbContext,
             IOptions<StoreOptions> options,
-            IImageService imageService,
             IFilesService filesService)
         {
             this.dbContext = dbContext;
-            this.imageService = imageService;
             this.options = options.Value;
             this.filesService = filesService;
         }
@@ -56,11 +53,25 @@ namespace Gifter.Services.Services
                 Message = MessageHelper.CreateEntityNotFoundMessage(nameof(Wish), uploadImageDTO.WishId),
             };
 
-            var fileFullPath = string.Empty;
             try
             {
-                fileFullPath = await filesService.StoreImageAsync(uploadImageDTO.ImageFile, userId, wish.WishListId);
-                await imageService.AddImageAsync(uploadImageDTO.WishId, fileFullPath);
+                var fileName = await filesService.StoreImageAsync(uploadImageDTO.ImageFile, userId, wish.WishList.DirectoryName);
+                var fileToDelete = string.Empty;
+
+                if (wish.Image == null)
+                {
+                    wish.Image = new Image() { FileName = fileName };
+                }
+                else
+                {
+                    fileToDelete = wish.Image.FileName;
+                    wish.Image.FileName = fileName;
+                }
+
+                await dbContext.SaveChangesAsync();
+                
+                //Delete old file
+                if (!string.IsNullOrWhiteSpace(fileToDelete)) filesService.DeleteImage(userId, wish.WishList.DirectoryName, fileToDelete);
             }
             catch (Exception ex)
             {
@@ -74,7 +85,9 @@ namespace Gifter.Services.Services
                 else if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
                 {
                     //File was saved on filesystem so do cleanup and delete that file
-                    File.Delete(fileFullPath);
+
+                    filesService.DeleteImage(userId, wish.WishList.DirectoryName, wish.Image.FileName);
+                   
                     return operationFailResult;
                 }
 
@@ -126,8 +139,8 @@ namespace Gifter.Services.Services
 
             try
             {
-                var storedImage = await filesService.GetStoredImageAsync(wish.Image.Path);
-               
+                var storedImage = await filesService.GetStoredImageAsync(userId, wish.WishListId.ToString(), wish.Image.FileName);
+
                 return new OperationResult<DownloadImageDTO>()
                 {
                     Status = OperationStatus.SUCCESS,
@@ -152,9 +165,9 @@ namespace Gifter.Services.Services
         {
             //1. Find image to delete
             var image = await dbContext.Images
-                .Include(i=>i.Wish)
-                .ThenInclude(w=>w.WishList)
-                .ThenInclude(wl=>wl.User)
+                .Include(i => i.Wish)
+                .ThenInclude(w => w.WishList)
+                .ThenInclude(wl => wl.User)
                 .FirstOrDefaultAsync(i => i.Id == imageId && i.Wish.WishList.User.Auth0Id == userId);
 
             if (image == null) return new OperationResult<object>()
@@ -168,11 +181,11 @@ namespace Gifter.Services.Services
             {
                 dbContext.Images.Remove(image);
                 await dbContext.SaveChangesAsync();
-                filesService.Delete(image.Path);
+                filesService.DeleteImage(userId, image.Wish.WishList.DirectoryName, image.Wish.Image.FileName);
             }
             catch (Exception ex)
             {
-                if(ex is DbUpdateException ||  ex is DbUpdateConcurrencyException)
+                if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
                 {
                     return new OperationResult<object>()
                     {
@@ -180,7 +193,7 @@ namespace Gifter.Services.Services
                         Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.delete)
                     };
                 }
-                else if(ex is FileServiceException)
+                else if (ex is FileServiceException)
                 {
                     //Log and do nothing, most important is that it will disaper from UI.
                     return new OperationResult<object>()

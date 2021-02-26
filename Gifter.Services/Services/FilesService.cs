@@ -3,6 +3,7 @@ using Gifter.Common.Exceptions;
 using Gifter.Common.Extensions;
 using Gifter.Common.Options;
 using Gifter.DataAccess;
+using Gifter.Services.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -25,68 +26,70 @@ namespace Gifter.Services.Services
         }
 
         /// <summary>
-        /// Create directory for given path.
+        /// Create wishlist directory for given user.
         /// </summary>
-        /// <param name="name">Name of folder</param>
+        /// <param name="userId">If of user.</param>
         /// <exception cref="ArgumentNullException">Thrown when path is null, empty or whitespace.</exception>
-        /// <exception cref="ArgumentException">Thrown when folder name is invalid</exception>
-        /// <returns>Full path when directory created successful.</returns>
-        public string CreateDirectoryForWishlist(string name, string userId)
+        /// <exception cref="ArgumentException">One one parameters has invalid characters for creating directory.</exception>
+        /// <returns>Name of wishlist directory.</returns>
+        public string CreateDirectoryForWishlist(string userId)
         {
-            var userDirPath = $"{options.BaseDirectory}\\{userId}";
-            var fullDirPath = $"{userDirPath}\\{name}";
+            Guard.IsValidDirName(userId);
 
             try
             {
-                Guard.IsValidDirName(userId);
-                Guard.IsValidDirName(name);
+                var dirName = GetUniqueWishlistDirName(userId);
+                var newWishlistDirectoryPath = GetWishlistDirectoryPath(userId, dirName);
+                Directory.CreateDirectory(newWishlistDirectoryPath);
 
-                return Directory.CreateDirectory(fullDirPath).FullName;
+                return dirName;
             }
             catch (Exception ex)
             {
-                throw new FileServiceException(ex.Message, ex);
+                throw new FileServiceException(ExceptionMessages.FILESERVICE_CREATE_STORE_FAIL, ex);
             }
         }
 
         /// <summary>
         /// Creates image in users directory with random unique name.
         /// </summary>
-        /// <param name="formFile">FormFile object</param>
-        /// <param name="userId">Name of directory to store images</param>
-        /// <returns>Full path to created image.</returns>
-        /// <exception cref="FileServiceException">Thrown when could not store image due to corrupted user directory.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="formFile"/> is not a image.</exception>
-        /// <exception cref="FormatException">Thrown when <paramref name="formFile"/> is to big.</exception>
-        public async Task<string> StoreImageAsync(IFormFile formFile, string userId, int wishlistId)
+        /// <param name="formFile">FormFile object.</param>
+        /// <param name="userId">Name of directory to store images.</param>
+        /// <returns>FileName with exension.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when one of parameters in null, empty or whitespace.</exception>
+        /// <exception cref="FileServiceException">Thrown when could not store image due internal error.</exception>
+        public async Task<string> StoreImageAsync(IFormFile formFile, string userId, string wishlistDirName)
         {
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+            Guard.IsNullEmptyOrWhiteSpace(wishlistDirName, nameof(wishlistDirName));
             Guard.IsNull(formFile);
 
-            if (!formFile.IsImage()) throw new ArgumentException("File is not a image.");
-            if (formFile.Length > options.FileMaxSize) throw new FormatException("File is too big.");
-      
             try
             {
-                var name = $"{DateTime.Now.Ticks}";
-                var wishlistDir = $"{this.options.BaseDirectory}\\{userId}\\{wishlistId}";
+                if (!formFile.IsImage()) throw new ArgumentException(ExceptionMessages.FILESERVICE_NOT_IMAGE);
+                if (formFile.Length > options.FileMaxSize) throw new FormatException(ExceptionMessages.FILESERVICE_FILE_TOO_BIG);
+
+                var fileName = CreateUniqueFileName(userId, wishlistDirName);
+                var wishlistDir = GetWishlistDirectoryPath(userId, wishlistDirName);
                 var extension = formFile.TryGetImageExtension();
 
-                if (extension == null) throw new FormatException("File signature not recognised.");
-                var fileFullpath = $"{wishlistDir}\\{name}{extension}";
+                if (extension == null) throw new FormatException(ExceptionMessages.FILESERVICE_INVALID_SIGNATURE);
 
-                if (!Directory.Exists(wishlistDir)) throw new IOException($"Directory \"{wishlistDir}\" does not exists.");
-                if (File.Exists(fileFullpath)) throw new IOException($"File already exists with given name: {name}.");
+                var fileNameWithExtension = $"{fileName}{extension}";
+                var fileFullpath = $"{wishlistDir}\\{fileNameWithExtension}";
+
+                if (!Directory.Exists(wishlistDir)) throw new IOException(ExceptionMessages.FILESERVICE_DIR_NOT_EXIST);
+                if (File.Exists(fileFullpath)) throw new IOException(ExceptionMessages.FILESERVICE_FILE_EXISTS);
 
                 using (var stream = File.Create(fileFullpath))
                 {
                     await formFile.CopyToAsync(stream);
                 }
-                return fileFullpath;
+                return fileNameWithExtension;
             }
             catch (Exception ex)
             {
-                throw new FileServiceException("Internal error. Could not store image due to corrupted user directory.", ex);
+                throw new FileServiceException(ExceptionMessages.FILESERVICE_SAVE_FAIL, ex);
             }
         }
 
@@ -125,12 +128,17 @@ namespace Gifter.Services.Services
         /// </summary>
         /// <param name="imagePath"></param>
         /// <returns>Byte array of image</returns>
+        /// <exception cref="ArgumentNullException">Thrown when one of parameters in null, empty or whitespace.</exception>
         /// <exception cref="FileServiceException">Thrown when could not get image from filesystem.</exception>
-        public async Task<byte[]> GetStoredImageAsync(string imagePath)
+        public async Task<byte[]> GetStoredImageAsync(string userId, string wishlitId, string fileName)
         {
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+            Guard.IsNullEmptyOrWhiteSpace(wishlitId, nameof(wishlitId));
+            Guard.IsNullEmptyOrWhiteSpace(fileName, nameof(fileName));
+
             try
             {
-                Guard.IsNullEmptyOrWhiteSpace(imagePath, nameof(imagePath));
+                var imagePath = GetImagePath(userId, wishlitId, fileName);
 
                 if (!File.Exists(imagePath)) throw new FileNotFoundException();
 
@@ -138,7 +146,7 @@ namespace Gifter.Services.Services
             }
             catch (Exception ex)
             {
-                throw new FileServiceException("Could not get image from filesystem", ex);
+                throw new FileServiceException(ExceptionMessages.FILESERVICE_GET_FAIL, ex);
             }
         }
 
@@ -146,28 +154,84 @@ namespace Gifter.Services.Services
         /// Delete image from filesystem for given <paramref name="path"/>.
         /// </summary>
         /// <param name="path">Path to file to be deleted.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="path"/> is null, empty, or whitespace.</exception>
-        /// <exception cref="FileNotFoundException">Thrown when file could not be found or path is invalid</exception>
-        public void Delete(string path)
+        /// <exception cref="ArgumentNullException">Thrown when one of parameters in null, empty or whitespace.</exception>
+        /// <exception cref="FileNotFoundException">Thrown when file could not be found or path is invalid.</exception>
+        public void DeleteImage(string userId, string wishlistDirName, string fileName)
         {
-            Guard.IsNullEmptyOrWhiteSpace(path, nameof(path));
-            Guard.IsValidPath(path);
-            File.Delete(path);
+            Guard.IsNullEmptyOrWhiteSpace(wishlistDirName, nameof(wishlistDirName));
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+            Guard.IsNullEmptyOrWhiteSpace(fileName, nameof(fileName));
+
+            try
+            {
+                var imagePath = GetImagePath(userId, wishlistDirName, fileName);
+                if (File.Exists(imagePath)) File.Delete(imagePath);
+            }
+            catch (Exception ex)
+            {
+                throw new FileServiceException(ExceptionMessages.FILESERVICE_DELETE_IMAGE_FAIL, ex);
+            }
         }
 
         /// <summary>
         /// Deletes wishlist folder with images. 
         /// </summary>
-        /// <param name="id">Id/folder name of wishlist.</param>
-        /// <param name="userId">Id/Folder name of user.</param>
-        public void DeleteWishlistStore(string wishlistId, string userId)
+        /// <param name="wishlistDirName">Directory name of wishlist.</param>
+        /// <param name="userId">Id of user.</param>
+        /// <exception cref="ArgumentNullException">Thrown when one of parameters is null, empty or whitespace.</exception>
+        /// <exception cref="FileServiceException">Thrown when could not delete image due some internal exception.</exception>
+        public void DeleteWishlistDirectory(string userId, string wishlistDirName)
         {
-            Guard.IsNullEmptyOrWhiteSpace(wishlistId);
+            Guard.IsNullEmptyOrWhiteSpace(wishlistDirName);
             Guard.IsNullEmptyOrWhiteSpace(userId);
 
-            var pathToDelete = $"{options.BaseDirectory}\\{userId}\\{wishlistId}";
+            try
+            {
+                var pathToDelete = GetWishlistDirectoryPath(userId, wishlistDirName);
 
-            if (Directory.Exists(pathToDelete)) Directory.Delete(pathToDelete, true);
+                if (Directory.Exists(pathToDelete)) Directory.Delete(pathToDelete, true);
+            }
+            catch (Exception ex)
+            {
+                throw new FileServiceException(ExceptionMessages.FILESERVICE_DELETE_STORE_FAIL, ex);
+            }
+        }
+
+        private string GetWishlistDirectoryPath(string userId, string wishlistDirName)
+        {
+            return $"{options.BaseDirectory}\\{userId}\\{wishlistDirName}";
+        }
+
+        private string GetImagePath(string userId, string wishlistDirName, string fileName)
+        {
+            return $"{GetWishlistDirectoryPath(userId, wishlistDirName)}\\{fileName}";
+        }
+
+        private string GetUniqueWishlistDirName(string userId)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                var dirName = DateTime.Now.Ticks.ToString();
+                var dirFullPath = GetWishlistDirectoryPath(userId, dirName);
+
+                if (!Directory.Exists(dirFullPath)) return dirName;
+            }
+
+            throw new IOException(ExceptionMessages.FILESERVICE_CREATE_UNIQUE_DIR);
+        }
+
+        private string CreateUniqueFileName(string userId, string wishlistDirName)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                var fileName = DateTime.Now.Ticks.ToString();
+                var dirFullPath = GetWishlistDirectoryPath(userId, wishlistDirName);
+
+                if (!File.Exists($"{dirFullPath}//{fileName}")) return fileName;
+
+            }
+
+            throw new IOException(ExceptionMessages.FILESERVICE_CREATE_UNIQUE_FILENAME);
         }
     }
 }

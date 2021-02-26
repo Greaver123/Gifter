@@ -35,7 +35,6 @@ namespace Gifter
             services.AddControllersWithViews();
             services.AddDbContext<GifterDbContext>(options => options.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Test"));
             services.AddScoped<IWishlistService, WishlistService>();
-            services.AddScoped<IImageService, ImageService>();
             services.AddScoped<IUploadService, UploadService>();
             services.AddScoped<IFilesService, FilesService>();
             services.AddScoped<IWishService, WishService>();

@@ -19,18 +19,6 @@ namespace Gifter.Services.Tests
     [TestClass]
     public class FileServiceTests : GifterDBContextTests
     {
-        public const string IMAGESOURCEPATH = @"C:\Users\pkolo\Repos\Gifter\Gifter.Services.Tests\Images\";
-        public const string BASEDESTPATH = @"C:\Users\pkolo\Repos\Gifter\Gifter.Services.Tests\ImagesDest";
-        public const string USERAUTHID = "userAuthId2";
-
-        public string FullUserDirPath
-        {
-            get
-            {
-                return $"{BASEDESTPATH}\\{USERAUTHID}";
-            }
-        }
-
         public FilesService filesService;
 
         public FileServiceTests() : base()
@@ -39,19 +27,20 @@ namespace Gifter.Services.Tests
                 Options.Create(
                     new StoreOptions()
                     {
-                        BaseDirectory = BASEDESTPATH,
+                        BaseDirectory = ImageDestPath,
                         UserStoreMaxSize = 100,
                         FileMaxSize = 5000000, //5MB
                     }));
 
             var user = new User()
             {
-                Auth0Id = USERAUTHID,
+                Auth0Id = UserId,
                 Auth0Email = "test@gmail.com",
                 Auth0Username = "JohnDoe",
                 WishLists = new List<WishList> {
                     new WishList() {
                         Name = "Test Wishlist",
+                        DirectoryName = "dsadasdasd",
                         Wishes = new List<Wish>()
                         {
                             new Wish(){Name="Wish 1",Price=100, URL="URL 1"},
@@ -71,14 +60,15 @@ namespace Gifter.Services.Tests
         [TestMethod]
         public async Task StoreImageAsync_PngImage_FileCreatedAtUserDirectory()
         {
-            using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.png"))
+            using (var stream = File.OpenRead($"{ImageSrcPath}\\image.png"))
             {
-                var wishlistId = 1;
-                var wishlistPath = $"{FullUserDirPath}\\{wishlistId}";
+                var wishlistDirName = "fjlskdjflskdfjfjlds";
+                var wishlistPath = $"{UserDirectory}\\{wishlistDirName}";
                 Directory.CreateDirectory(wishlistPath);
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                var result = await filesService.StoreImageAsync(formFile, USERAUTHID,1);
-                Assert.IsTrue(File.Exists(result));
+                var result = await filesService.StoreImageAsync(formFile, UserId, wishlistDirName);
+                Assert.IsNotNull(result);
+                Assert.IsTrue(Directory.GetFiles(wishlistPath).Length > 0);
                 Directory.Delete(wishlistPath, true);
             }
         }
@@ -86,14 +76,14 @@ namespace Gifter.Services.Tests
         [TestMethod]
         public async Task StoreImageAsync_WishlistDirDoesNotExist_ThrowsFileServiceException()
         {
-            using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.png"))
+            using (var stream = File.OpenRead($"{ImageSrcPath}\\image.png"))
             {
-                var wishlistId = 1;
-                var wishlistPath = $"{FullUserDirPath}\\{wishlistId}";
+                var wishlistDirName = "fjlskdjflskdfjfjlds";
+                var wishlistPath = $"{UserDirectory}\\{wishlistDirName}";
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 await Assert.ThrowsExceptionAsync<FileServiceException>(async () =>
                 {
-                    var result = await filesService.StoreImageAsync(formFile, USERAUTHID, 1);
+                    var result = await filesService.StoreImageAsync(formFile, UserId, wishlistDirName);
 
                 });
             }
@@ -102,12 +92,13 @@ namespace Gifter.Services.Tests
         [TestMethod]
         public async Task StoreImageAsync_TxtFile_ThrowsFileServiceException()
         {
-            using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.txt"))
+            using (var stream = File.OpenRead($"{ImageSrcPath}\\image.txt"))
             {
+                var wishlistDirName = "fjlskdjflskdfjfjlds";
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 await Assert.ThrowsExceptionAsync<FileServiceException>(async () =>
                 {
-                    var result = await filesService.StoreImageAsync(formFile, USERAUTHID,1);
+                    var result = await filesService.StoreImageAsync(formFile, UserId, wishlistDirName);
                 });
             }
         }
@@ -115,12 +106,13 @@ namespace Gifter.Services.Tests
         [TestMethod]
         public async Task StoreImageAsync_InvalidCharactersInDirName_ThrowsFileServiceException()
         {
-            using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.png"))
+            using (var stream = File.OpenRead($"{ImageSrcPath}\\image.png"))
             {
+                var wishlistDirName = "fjlskdjflskdfjfjlds......";
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 await Assert.ThrowsExceptionAsync<FileServiceException>(async () =>
                 {
-                    var result = await filesService.StoreImageAsync(formFile, USERAUTHID,1);
+                    var result = await filesService.StoreImageAsync(formFile, UserId, wishlistDirName);
                 });
             }
         }
@@ -128,46 +120,47 @@ namespace Gifter.Services.Tests
         [TestMethod]
         public async Task StoreImageAsync_File2Big_ThrowsFileServiceException()
         {
-            using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image20MB.png"))
+            using (var stream = File.OpenRead($"{ImageSrcPath}\\image20MB.png"))
             {
+                var wishlistDirName = "fjlskdjflskdfjfjlds";
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 await Assert.ThrowsExceptionAsync<FileServiceException>(async () =>
                 {
-                    var result = await filesService.StoreImageAsync(formFile, USERAUTHID,1);
+                    var result = await filesService.StoreImageAsync(formFile, UserId, wishlistDirName);
                 });
             }
         }
 
-        [TestMethod]
-        public async Task DeleteUnassignedImages_FewFiles_ReturnsTrue()
-        {
-            using (var stream = File.OpenRead($"{IMAGESOURCEPATH}\\image.png"))
-            {
-                var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
-                var filesCount = 6;
-                var filesPath = await CreateTestFilesFromStream(stream, $"{BASEDESTPATH}\\{USERAUTHID}", filesCount);
+        //[TestMethod]
+        //public async Task DeleteUnassignedImages_FewFiles_ReturnsTrue()
+        //{
+        //    using (var stream = File.OpenRead($"{ImageSrcPath}\\image.png"))
+        //    {
+        //        var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
+        //        var filesCount = 6;
+        //        var filesPath = await CreateTestFilesFromStream(stream, UserDirectory, filesCount);
 
-                //Create entries with files in Image entity
-                for (int i = 0; i < (filesCount / 2); i++)
-                {
-                    DbContext.Images.Add(new Image() { Path = filesPath[i], WishId = i + 1 });
-                }
+        //        //Create entries with files in Image entity
+        //        for (int i = 0; i < (filesCount / 2); i++)
+        //        {
+        //            DbContext.Images.Add(new Image() { Path = filesPath[i], WishId = i + 1 });
+        //        }
 
-                await DbContext.SaveChangesAsync();
+        //        await DbContext.SaveChangesAsync();
 
-                Assert.AreEqual(3, DbContext.Images.Select(i => i).Count());
-                var result = await filesService.DeleteUnassignedImages(USERAUTHID);
+        //        Assert.AreEqual(3, DbContext.Images.Select(i => i).Count());
+        //        var result = await filesService.DeleteUnassignedImages(UserId);
 
-                Assert.IsTrue(result);
-                Assert.AreEqual(3, Directory.GetFiles(FullUserDirPath).Count());
+        //        Assert.IsTrue(result);
+        //        Assert.AreEqual(3, Directory.GetFiles(UserDirectory).Count());
 
-                var expected = new string[3];
-                Array.Copy(filesPath, expected, 3);
+        //        var expected = new string[3];
+        //        Array.Copy(filesPath, expected, 3);
 
-                //Check if delted correct files
-                Assert.AreEqual(3, Directory.GetFiles(FullUserDirPath).Where(file => expected.Contains(file)).Count(), "Deleted wrong files");
-            }
-        }
+        //        //Check if delted correct files
+        //        Assert.AreEqual(3, Directory.GetFiles(UserDirectory).Where(file => expected.Contains(file)).Count(), "Deleted wrong files");
+        //    }
+        //}
 
         private async Task<string[]> CreateTestFilesFromStream(Stream stream, string path, int count)
         {
@@ -197,40 +190,26 @@ namespace Gifter.Services.Tests
         }
 
         [TestMethod]
-        public void CreateDirectoryForUser_PathDoesNotExists_ReturnsFullPath()
+        public void CreateDirectoryForUser_PathDoesNotExists_ReturnsDirName()
         {
-            string folderName = "abcdef";
+            //Arrange
             string userId = "bgdb1451tgfdg";
 
-            var fullPathResult = filesService.CreateDirectoryForWishlist(folderName, userId);
-            var expectedPath = $"{BASEDESTPATH}\\{userId}\\{folderName}";
+            //Act
+            var dirName = filesService.CreateDirectoryForWishlist(userId);
 
-            Assert.AreEqual(expectedPath, fullPathResult);
-
-        }
-
-        [TestMethod]
-        public void CreateDirectoryForUser_PathAlreadyExists_ReturnsFullPath()
-        {
-            string folderName = "abcdef";
-            string userId = "bgdb1451tgfdg";
-
-            var fullPathExpected = Directory.CreateDirectory($"{BASEDESTPATH}\\{userId}\\{folderName}").FullName;
-
-            var fullPathActual = filesService.CreateDirectoryForWishlist(folderName, userId);
-
-            Assert.AreEqual(fullPathExpected, fullPathActual);
+            //Assert
+            Assert.IsNotNull(dirName);
         }
 
         [TestMethod]
         public void CreateDirectoryForUser_InvalidCharactersInFolderName_ThrowsException()
         {
-            string folderName = "abcdef";
             string userId = "bgdb1451tgfdg...";
 
-            Assert.ThrowsException<FileServiceException>(() =>
+            Assert.ThrowsException<ArgumentException>(() =>
             {
-                var fullPathActual = filesService.CreateDirectoryForWishlist(folderName, userId);
+                var fullPathActual = filesService.CreateDirectoryForWishlist(userId);
             });
         }
 
@@ -280,9 +259,9 @@ namespace Gifter.Services.Tests
         [TestMethod]
         public async Task DeleteWishlistStore_ExistingPath_DeleteSuccess()
         {
-            var wishlistId = 1;
-            var dir1 = $"{BASEDESTPATH}\\{USERAUTHID}\\{wishlistId}";
-            var dir2 = $"{BASEDESTPATH}\\{USERAUTHID}\\{2}";
+            var wishlistDirName = "fdsfsdfsdfsdf";
+            var dir1 = $"{ImageDestPath}\\{UserId}\\{wishlistDirName}";
+            var dir2 = $"{ImageDestPath}\\{UserId}\\{2}";
 
             Directory.CreateDirectory(dir1);
             Directory.CreateDirectory(dir2);
@@ -290,19 +269,12 @@ namespace Gifter.Services.Tests
             await CreateTestFilesFromStream(File.OpenRead($"{ImageSrcPath}\\image.png"),dir1,10);
             await CreateTestFilesFromStream(File.OpenRead($"{ImageSrcPath}\\image.png"), dir2, 10);
 
-            filesService.DeleteWishlistStore(wishlistId.ToString(),USERAUTHID);
+            filesService.DeleteWishlistDirectory(UserId, wishlistDirName);
 
             Assert.IsFalse(Directory.Exists(dir1));
             Assert.IsTrue(Directory.Exists(dir2));
 
             Directory.Delete(dir2,true);
         }
-
-        //[TestCleanup]
-        //public void CleanTestDir()
-        //{
-        //    Directory.Delete(FullUserDirPath, true);
-        //    Assert.IsTrue(!Directory.Exists(FullUserDirPath));
-        //}
     }
 }

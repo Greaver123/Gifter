@@ -96,13 +96,13 @@ namespace Gifter.Services.Services
                     Data = false
                 };
 
-            //Check if there is image to be deleted from filesystem
+            ////Check if there is image to be deleted from filesystem
             var imageToDeletePath = wish.Image?.Path;
 
             dbContext.Wishes.Remove(wish);
             await dbContext.SaveChangesAsync();
 
-            if (imageToDeletePath != null) filesService.Delete(imageToDeletePath);
+            if (!string.IsNullOrWhiteSpace(imageToDeletePath)) filesService.DeleteImage(userId, wish.WishList.DirectoryName, wish.Image.FileName);
 
             return new OperationResult<bool>()
             {
@@ -122,7 +122,7 @@ namespace Gifter.Services.Services
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
 
             var wish = await dbContext.Wishes
-            .Include(w=>w.Image)
+            .Include(w => w.Image)
                 .Include(w => w.WishList)
             .ThenInclude(wl => wl.User)
             .FirstOrDefaultAsync(w => w.Id == id && w.WishList.User.Auth0Id == userId);

@@ -113,7 +113,7 @@ namespace Gifter.Services.Tests
             var fileServiceMock = new Mock<IFilesService>();
             var exceptionMessage = "Directory name is not valid.";
             fileServiceMock
-                .Setup(fileService => fileService.CreateDirectoryForWishlist("1", UserAuthId))
+                .Setup(fileService => fileService.CreateDirectoryForWishlist("v...."))
                 .Throws(new FileServiceException(exceptionMessage, new ArgumentException(exceptionMessage)));
 
             wishlistService = new WishlistService(DbContext, fileServiceMock.Object);

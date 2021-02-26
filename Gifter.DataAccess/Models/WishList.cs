@@ -10,6 +10,9 @@ namespace Gifter.DataAccess.Models
         [Required]
         public string  Name { get; set; }
 
+        [Required]
+        public string DirectoryName { get; set; }
+
         //[Column("OwnerId")]
         public int UserId { get; set; }
        

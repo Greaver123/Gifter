@@ -10,6 +10,6 @@ namespace Gifter.Services.DTOS.Image
     {
         public string FileExtension { get; set; }
 
-        public byte[] Image { get; set; }
+        public string Image { get; set; }
     }
 }

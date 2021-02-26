@@ -42,15 +42,15 @@ namespace Gifter.Services.Services
                     Data = null
                 };
 
+            //create dir
             var wishlist = new WishList() { Name = title, User = user };
             dbContext.Wishlists.Add(wishlist);
 
             try
             {
+                wishlist.DirectoryName = filesService.CreateDirectoryForWishlist(userId);
                 await dbContext.SaveChangesAsync();
 
-                //Create directory for wishlist images
-                filesService.CreateDirectoryForWishlist(wishlist.Id.ToString(), userId);
             }
             catch (Exception ex)
             {
@@ -61,23 +61,12 @@ namespace Gifter.Services.Services
                     Data = null
                 };
 
+                if (ex is FileServiceException) return operationErrorResult;
+
                 if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
                 {
-                    return operationErrorResult;
-                }
-                else if (ex is FileServiceException)
-                {
-                    //Something went wrong when saving creating directory, so delete Wishlist entry from db
-                    try
-                    {
-                        dbContext.Wishlists.Remove(wishlist);
-                        await dbContext.SaveChangesAsync();
-                    }
-                    catch (DbUpdateException)
-                    {
-                        //LOG that Could not make cleanup after FileServiceExcepion
-                    }
-
+                    //Do cleanup becouse dir was created 
+                    filesService.DeleteWishlistDirectory(userId, wishlist.DirectoryName);
                     return operationErrorResult;
                 }
 
@@ -112,7 +101,7 @@ namespace Gifter.Services.Services
                 dbContext.Wishlists.Remove(wishlist);
                 await dbContext.SaveChangesAsync();
                 
-                filesService.DeleteWishlistStore(wishlist.Id.ToString(), userId);
+                filesService.DeleteWishlistDirectory(wishlist.Id.ToString(), userId);
               
             }
             catch (Exception ex)

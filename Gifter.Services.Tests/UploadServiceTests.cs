@@ -24,8 +24,7 @@ namespace Gifter.Services.Tests
         public UploadServiceTests() : base()
         {
             var filesService = new FilesService(DbContext, StoreOptions);
-            var imageService = new ImageService(DbContext, StoreOptions);
-            uploadService = new UploadService(DbContext, StoreOptions, imageService, filesService);
+            uploadService = new UploadService(DbContext, StoreOptions,filesService);
             ImageSourcePath = @"C:\Users\pkolo\Repos\Gifter\Gifter.Services.Tests\Images\";
         }
 
