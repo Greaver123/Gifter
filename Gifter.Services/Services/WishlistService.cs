@@ -101,7 +101,7 @@ namespace Gifter.Services.Services
                 dbContext.Wishlists.Remove(wishlist);
                 await dbContext.SaveChangesAsync();
                 
-                filesService.DeleteWishlistDirectory(wishlist.Id.ToString(), userId);
+                filesService.DeleteWishlistDirectory(userId, wishlist.DirectoryName);
               
             }
             catch (Exception ex)

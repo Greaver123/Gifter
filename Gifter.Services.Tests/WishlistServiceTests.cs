@@ -8,6 +8,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Gifter.Services.Tests
@@ -116,6 +118,45 @@ namespace Gifter.Services.Tests
 
             //Assert
             Assert.AreEqual(OperationStatus.ERROR, operationResult.Status);
+        }
+
+        [TestMethod]
+        public async Task DeleteWishlist_WishlistWithWish_ReturnOperationSuccess()
+        {
+            //Arrange
+            var wishlistDirName = "fdsfsdfssf";
+            var imageFileName = "fdsfdsfsd.png";
+
+            var wishlist = new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                DirectoryName = wishlistDirName,
+                Wishes = new List<Wish>(){
+                    new Wish(){
+                        Name = "Wish 1"
+                        ,Image = new Image()
+                        {
+                            FileName = imageFileName
+                        }
+                    }
+                }
+            };
+
+            DbContext.Wishlists.Add(wishlist);
+            DbContext.SaveChanges();
+
+            var wishlistDirPath = $"{UserDirectory}\\{wishlistDirName}";
+
+            Directory.CreateDirectory(wishlistDirPath);
+            File.Copy($"{ImageSrcPath}\\image.png",$"{wishlistDirPath}\\{imageFileName}");
+
+            //Act
+            await wishlistService.DeleteWishlist(1, UserId);
+
+            //Assert
+            Assert.AreEqual(0, DbContext.Wishlists.Count());
+            Assert.IsFalse(Directory.Exists(wishlistDirPath));
         }
     }
 }
