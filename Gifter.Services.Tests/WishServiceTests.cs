@@ -1,4 +1,5 @@
 ﻿using Gifter.DataAccess.Models;
+using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,89 +17,120 @@ namespace Gifter.Services.Tests
     {
         private readonly WishService wishService;
 
-        public string UserAuthId { get; set; } = "userAuthId3";
-
-        public string UserDirPath
-        {
-            get
-            {
-                return $"{ImageDestPath}//{UserAuthId}";
-            }
-        }
-
         public WishServiceTests() : base()
         {
             wishService = new WishService(DbContext, new FilesService(DbContext, StoreOptions));
-            var user = new User()
-            {
-                Auth0Id = UserAuthId,
-                Auth0Email = "test@gmail.com",
-                Auth0Username = "JohnDoe",
-                WishLists = new List<WishList> {
-                    new WishList() {
-                        Name = "Test Wishlist",
-                        Wishes = new List<Wish>()
-                        {
-                            new Wish(){Name="Wish 1",Price=100, URL="URL 1"},
-                            new Wish(){Name="Wish 2",Price=200, URL="URL 2"},
-                        }
-                    },
-                }
-            };
-            DbContext.Users.Add(user);
-            DbContext.SaveChanges();
         }
 
         [TestMethod]
         public async Task DeleteWish_WishExistWithoutImage_ReturnTrue()
         {
-            var result = await wishService.DeleteAsync(1, "userAuthId3");
 
+            //Arrange
+            DbContext.Wishlists.Add(new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                DirectoryName = "avavreghv",
+                Wishes = new List<Wish>() {
+                    new Wish() {
+                        Name = "Wish 1",
+                        Price = 12345,
+                        URL = "www.wish1.com" } },
+            });
+
+            DbContext.SaveChanges();
+
+            //act
+            var result = await wishService.DeleteAsync(1, UserId);
+
+
+            //Assert
             Assert.IsTrue(result.Data);
-            Assert.AreEqual(1, DbContext.Wishes.Count());
+            Assert.AreEqual(0, DbContext.Wishes.Count());
         }
 
         [TestMethod]
         public async Task DeleteWish_WishExistWithImage_ReturnTrue()
         {
             //Arrange
-            var fullFilePath = $"{UserDirPath}\\image.png";
-
-            Directory.CreateDirectory(UserDirPath);
+            var fileName = "fdsfsdvcxs.png";
+            var wishlistDirName = "avavreghv";
+            var fullFilePath = $"{UserDirectory}\\{wishlistDirName}\\{fileName}";
+           
+            Directory.CreateDirectory($"{UserDirectory}\\{wishlistDirName}");
             File.Copy($"{ImageSrcPath}\\image.png", fullFilePath);
 
-            var wish = DbContext.Wishes.FirstOrDefault(w => w.Id == 1);
-            wish.Image = new Image() { Path = fullFilePath };
+            DbContext.Wishlists.Add(new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                DirectoryName = wishlistDirName,
+                Wishes = new List<Wish>() {
+                    new Wish() {
+                        Name = "Wish 1",
+                        Price = 12345,
+                        URL = "www.wish1.com",
+                    Image = new Image(){ 
+                        FileName = fileName}, 
+                    }
+            }
+            });
+
             DbContext.SaveChanges();
 
             //Act
-            var result = await wishService.DeleteAsync(1, UserAuthId);
+            var result = await wishService.DeleteAsync(1, UserId);
 
             //Assert
             Assert.IsTrue(result.Data);
-            Assert.AreEqual(1, DbContext.Wishes.Count());
+            Assert.AreEqual(0, DbContext.Wishes.Count());
             Assert.IsFalse(File.Exists(fullFilePath));
+
+            //Cleanup 
+            Directory.Delete($"{UserDirectory}\\{wishlistDirName}");
         }
 
 
         [TestMethod]
         public async Task AddWish_EmptyWishWithWishlistId_ReturnWishId()
         {
+            //Arrange
+            DbContext.Wishlists.Add(new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                DirectoryName = "avavreghv",
+            });
+
+            DbContext.SaveChanges();
+
             var addWish = new AddWishDTO()
             {
                 WishlistId = 1,
             };
 
             //Act
-            var operationResult = await wishService.AddAsync(addWish, UserAuthId);
+            var operationResult = await wishService.AddAsync(addWish, UserId);
 
             //Assert
-            Assert.AreEqual(3, operationResult.Data.Id);
+            Assert.AreEqual(1, operationResult.Data.Id);
         }
 
         [TestMethod]
         public async Task AddWish_Wish_ReturnWishId()
         {
+
+            //Arrange
+            DbContext.Wishlists.Add(new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                DirectoryName = "avavreghv",
+            });
+
+            DbContext.SaveChanges();
+
             var addWish = new AddWishDTO()
             {
                 WishlistId = 1,
@@ -108,15 +140,17 @@ namespace Gifter.Services.Tests
             };
 
             //Act
-            var operationResult = await wishService.AddAsync(addWish, UserAuthId);
+            var operationResult = await wishService.AddAsync(addWish, UserId);
 
             //Assert
-            Assert.AreEqual(3, operationResult.Data.Id);
+            Assert.IsTrue(operationResult.Status == OperationStatus.SUCCESS);
+            Assert.AreEqual(1, operationResult.Data.Id);
         }
 
         [TestMethod]
         public async Task AddWish_WishlistDoesNotExist_ReturnNull()
         {
+            //Arrange
             var addWish = new AddWishDTO()
             {
                 WishlistId = 12345,
@@ -126,7 +160,7 @@ namespace Gifter.Services.Tests
             };
 
             //Act
-            var operationResult = await wishService.AddAsync(addWish, UserAuthId);
+            var operationResult = await wishService.AddAsync(addWish, UserId);
 
             //Assert
             Assert.IsNull(operationResult.Data);

@@ -19,20 +19,17 @@ namespace Gifter.Services.Tests
     public class UploadServiceTests : TestWithSQLiteBase
     {
         private readonly UploadService uploadService;
-        private string ImageSourcePath;
 
         public UploadServiceTests() : base()
         {
             var filesService = new FilesService(DbContext, StoreOptions);
-            uploadService = new UploadService(DbContext, StoreOptions,filesService);
-            ImageSourcePath = @"C:\Users\pkolo\Repos\Gifter\Gifter.Services.Tests\Images\";
+            uploadService = new UploadService(DbContext, StoreOptions, filesService);
         }
 
         [TestMethod]
         public async Task DeleteImage_WishExistsAndImageDoesNotExist_Fail()
         {
             //Arrange
-
             var wishlist = new WishList()
             {
                 UserId = 1,
@@ -42,6 +39,7 @@ namespace Gifter.Services.Tests
                         Name = "Wish 1",
                     }
                 }
+                ,DirectoryName = "bvcbcxbcv",
             };
 
             DbContext.Wishlists.Add(wishlist);
@@ -53,10 +51,13 @@ namespace Gifter.Services.Tests
             //Assert
             Assert.AreEqual(OperationStatus.FAIL, operationResult.Status);
         }
+
         [TestMethod]
         public async Task DeleteImage_WishExistsAndImageExists_Success()
         {
             //Arrange
+            var wishlistDirName = "fdsfdsfsdf";
+            var fileName = "fdsfdsfsd.png";
 
             var wishlist = new WishList()
             {
@@ -65,22 +66,25 @@ namespace Gifter.Services.Tests
                 Wishes = new List<Wish>(){
                     new Wish(){
                         Name = "Wish 1",
+                        Image = new Image()
+                        {
+                            FileName =fileName,
+                        }
                     }
                 }
+                ,
+                DirectoryName = wishlistDirName
             };
 
             DbContext.Wishlists.Add(wishlist);
             DbContext.SaveChanges();
-            Directory.CreateDirectory($"{UserDirectory}\\{wishlist.Id}");
-            File.Copy($"{ImageSourcePath}\\image.png", $"{UserDirectory}\\{wishlist.Id}\\image.png");
+            Directory.CreateDirectory($"{UserDirectory}\\{wishlistDirName}");
 
-            DbContext.Images.Add(new Image() { WishId = wishlist.Wishes.First().Id, Path = $"{UserDirectory}\\{wishlist.Id}\\image.png" });
-            DbContext.SaveChanges();
-
+            var fileDestPath = $"{UserDirectory}\\{wishlistDirName}\\{fileName}";
+            File.Copy($"{ImageSrcPath}\\image.png", fileDestPath);
 
             //Act
-            var image = DbContext.Images.FirstOrDefault();
-            var operationResult = await uploadService.DeleteImageFromWish(image.Id, UserId);
+            var operationResult = await uploadService.DeleteImageFromWish(1, UserId);
 
             //Assert
             Assert.AreEqual(0, DbContext.Images.Count());
@@ -91,10 +95,12 @@ namespace Gifter.Services.Tests
         public async Task UploadImage_WishExistsAndImageNotUploaded_Success()
         {
             //Arrange
+            var wishlistDirName = "fdsfsdfssf";
             var wishlist = new WishList()
             {
                 UserId = 1,
                 Name = "Wishlist 1",
+                DirectoryName = wishlistDirName,
                 Wishes = new List<Wish>(){
                     new Wish(){
                         Name = "Wish 1"
@@ -104,10 +110,10 @@ namespace Gifter.Services.Tests
 
             DbContext.Wishlists.Add(wishlist);
             DbContext.SaveChanges();
-            Directory.CreateDirectory($"{UserDirectory}\\{wishlist.Id}");
+            Directory.CreateDirectory($"{UserDirectory}\\{wishlistDirName}");
 
             //Act
-            using (var stream = File.OpenRead($"{ImageSourcePath}\\image.png"))
+            using (var stream = File.OpenRead($"{ImageSrcPath}\\image.png"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 var result = await uploadService.UploadAsync(new UploadImageDTO() { WishId = 1, ImageFile = formFile }, UserId);
@@ -115,6 +121,9 @@ namespace Gifter.Services.Tests
                 //Assert
                 Assert.AreEqual(OperationStatus.SUCCESS, result.Status);
             }
+
+            //Cleanup
+            Directory.Delete($"{UserDirectory}\\{wishlistDirName}",true);
         }
 
         [TestMethod]
@@ -125,15 +134,15 @@ namespace Gifter.Services.Tests
             {
                 UserId = 1,
                 Name = "Wishlist 1",
+                DirectoryName = "fdsfdsfsdf"
 
             };
 
             DbContext.Wishlists.Add(wishlist);
             DbContext.SaveChanges();
-            Directory.CreateDirectory($"{UserDirectory}\\{wishlist.Id}");
 
             //Act
-            using (var stream = File.OpenRead($"{ImageSourcePath}\\image.png"))
+            using (var stream = File.OpenRead($"{ImageSrcPath}\\image.png"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 var result = await uploadService.UploadAsync(new UploadImageDTO() { WishId = 1, ImageFile = formFile }, UserId);
@@ -147,10 +156,12 @@ namespace Gifter.Services.Tests
         public async Task UploadImage_TextFile_ReturnsOperationResultError()
         {
             //Arrange
+            var wishlistDirName = "fdsfsdfsdvxc";
             var wishlist = new WishList()
             {
                 UserId = 1,
                 Name = "Wishlist 1",
+                DirectoryName = wishlistDirName,
                 Wishes = new List<Wish>(){
                     new Wish(){
                         Name = "Wish 1"
@@ -160,13 +171,14 @@ namespace Gifter.Services.Tests
 
             DbContext.Wishlists.Add(wishlist);
             DbContext.SaveChanges();
-            Directory.CreateDirectory($"{UserDirectory}\\{wishlist.Id}");
 
-            using (var stream = File.OpenRead($"{ImageSourcePath}\\image.txt"))
+            //Act
+            using (var stream = File.OpenRead($"{ImageSrcPath}\\image.txt"))
             {
                 var formFile = new FormFile(stream, 0, stream.Length, null, Path.GetFileName(stream.Name)) { Headers = new HeaderDictionary(), ContentType = "image/jpeg" };
                 var result = await uploadService.UploadAsync(new UploadImageDTO() { WishId = 1, ImageFile = formFile }, UserId);
 
+                //Assert
                 Assert.AreEqual(OperationStatus.ERROR, result.Status);
             }
         }
@@ -175,32 +187,41 @@ namespace Gifter.Services.Tests
         public async Task DownloadImage_WishExists_ReturnsOperationResultSuccess()
         {
             //Arrange
+            var wishlistDirName = "fdsfdsfsdf";
+            var fileName = "fdsfdsfsd.png";
             var wishlist = new WishList()
             {
                 UserId = 1,
                 Name = "Wishlist 1",
                 Wishes = new List<Wish>(){
-               new Wish()
-                 {
-                     Name = "Test",
-                     Price = 9999,
-                     Image = new Image()
-                     {
-                         Path = $"{this.ImageSourcePath}\\image.png"
-                     },
-                 }
+                    new Wish(){
+                        Name = "Wish 1",
+                        Image = new Image()
+                        {
+                            FileName =fileName,
+                        }
+                    }
                 }
+                ,
+                DirectoryName = wishlistDirName
             };
 
             DbContext.Wishlists.Add(wishlist);
             DbContext.SaveChanges();
+            Directory.CreateDirectory($"{UserDirectory}\\{wishlistDirName}");
+
+            var fileDestPath = $"{UserDirectory}\\{wishlistDirName}\\{fileName}";
+            File.Copy($"{ImageSrcPath}\\image.png", fileDestPath);
 
             //Act
-            var actualResult = await uploadService.DownloadImageAsync(wishlist.Wishes.First().Id, UserId);
+            var actualResult = await uploadService.DownloadImageAsync(1, UserId);
 
             //Assert
             Assert.IsNotNull(actualResult.Data.Image);
             Assert.AreEqual(OperationStatus.SUCCESS, actualResult.Status);
+
+            //Cleanup
+            Directory.Delete($"{UserDirectory}\\{wishlistDirName}",true);
         }
 
         [TestMethod]
@@ -211,6 +232,7 @@ namespace Gifter.Services.Tests
             {
                 UserId = 1,
                 Name = "Wishlist 1",
+                DirectoryName = "fdsfsdfsdfvcx",
             };
 
             DbContext.Wishlists.Add(wishlist);
@@ -232,6 +254,7 @@ namespace Gifter.Services.Tests
             {
                 UserId = 1,
                 Name = "Wishlist 1",
+                DirectoryName = "bvcbcvbsf",
                 Wishes = new List<Wish>()
                 {
                     new Wish()
@@ -240,7 +263,7 @@ namespace Gifter.Services.Tests
                         Price = 9999,
                         Image = new Image()
                         {
-                            Path = $"{this.ImageSourcePath}\\dontExist.png"
+                            FileName = "fdsfdsfdsfds.png"
                         },
                     }
                 }
@@ -250,7 +273,7 @@ namespace Gifter.Services.Tests
             DbContext.SaveChanges();
 
             //Act
-            var actualResult = await uploadService.DownloadImageAsync(wishlist.Wishes.First().Id, UserId);
+            var actualResult = await uploadService.DownloadImageAsync(1, UserId);
 
             //Assert
             Assert.IsNull(actualResult.Data);
@@ -265,6 +288,7 @@ namespace Gifter.Services.Tests
             {
                 UserId = 1,
                 Name = "Wishlist 1",
+                DirectoryName= "fdsfsdfsdfsd",
                 Wishes = new List<Wish>(){
                new Wish()
                  {
@@ -272,7 +296,7 @@ namespace Gifter.Services.Tests
                      Price = 9999,
                      Image = new Image()
                      {
-                         Path = $"{this.ImageSourcePath}\\image"
+                         FileName="gfdgdfgdf"
                      },
                  }
                 }
@@ -282,7 +306,7 @@ namespace Gifter.Services.Tests
             DbContext.SaveChanges();
 
             //Act
-            var actualResult = await uploadService.DownloadImageAsync(wishlist.Wishes.First().Id, UserId);
+            var actualResult = await uploadService.DownloadImageAsync(1, UserId);
 
             //Assert
             Assert.IsNull(actualResult.Data);

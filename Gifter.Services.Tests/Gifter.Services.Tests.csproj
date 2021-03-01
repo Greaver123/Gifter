@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <Folder Include="ImagesDest\" />
-    <Folder Include="ImagesDest\testDir\" />
   </ItemGroup>
 
 </Project>
