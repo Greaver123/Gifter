@@ -4,14 +4,16 @@ using Gifter.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Gifter.DataAccess.Migrations
 {
     [DbContext(typeof(GifterDbContext))]
-    partial class GifterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210301120940_RemovePathPropertyFromImage")]
+    partial class RemovePathPropertyFromImage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

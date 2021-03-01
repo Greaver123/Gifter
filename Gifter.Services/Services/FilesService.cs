@@ -103,22 +103,22 @@ namespace Gifter.Services.Services
         {
             if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentNullException(nameof(userId));
 
-            //Get all images for given user
-            var imagesInDB = await dbContext.Images
-                .Include(i => i.Wish)
-                .ThenInclude(w => w.WishList)
-                .ThenInclude(wl => wl.User)
-                .Where(i => i.Wish.WishList.User.Auth0Id == userId).ToListAsync();
+            ////Get all images for given user
+            //var imagesInDB = await dbContext.Images
+            //    .Include(i => i.Wish)
+            //    .ThenInclude(w => w.WishList)
+            //    .ThenInclude(wl => wl.User)
+            //    .Where(i => i.Wish.WishList.User.Auth0Id == userId).ToListAsync();
 
-            //Get All images files 
-            var dirPath = $"{options.BaseDirectory}\\{userId}";
-            var unassignedFiles = Directory.GetFiles(dirPath).Where(f => !imagesInDB.Exists(i => i.Path == f)).ToList();
+            ////Get All images files 
+            //var dirPath = $"{options.BaseDirectory}\\{userId}";
+            //var unassignedFiles = Directory.GetFiles(dirPath).Where(f => !imagesInDB.Exists(i => i.Path == f)).ToList();
 
-            foreach (var file in unassignedFiles)
-            {
-                //Debug.WriteLine(file);
-                File.Delete(file);
-            }
+            //foreach (var file in unassignedFiles)
+            //{
+            //    //Debug.WriteLine(file);
+            //    File.Delete(file);
+            //}
 
             return true;
         }
@@ -130,15 +130,15 @@ namespace Gifter.Services.Services
         /// <returns>Byte array of image</returns>
         /// <exception cref="ArgumentNullException">Thrown when one of parameters in null, empty or whitespace.</exception>
         /// <exception cref="FileServiceException">Thrown when could not get image from filesystem.</exception>
-        public async Task<byte[]> GetStoredImageAsync(string userId, string wishlitId, string fileName)
+        public async Task<byte[]> GetStoredImageAsync(string userId, string wishlistDirName, string fileName)
         {
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
-            Guard.IsNullEmptyOrWhiteSpace(wishlitId, nameof(wishlitId));
+            Guard.IsNullEmptyOrWhiteSpace(wishlistDirName, nameof(wishlistDirName));
             Guard.IsNullEmptyOrWhiteSpace(fileName, nameof(fileName));
 
             try
             {
-                var imagePath = GetImagePath(userId, wishlitId, fileName);
+                var imagePath = GetImagePath(userId, wishlistDirName, fileName);
 
                 if (!File.Exists(imagePath)) throw new FileNotFoundException();
 

@@ -129,7 +129,8 @@ namespace Gifter.Services.Services
                 Message = $"There is no image for {nameof(Wish)} with id = {wishId}"
             };
 
-            var fileExtension = Path.GetExtension(wish.Image.Path);
+            var filePath = $"{options.BaseDirectory}\\{userId}\\{wish.Image.FileName}";
+            var fileExtension = Path.GetExtension(filePath);
 
             if (string.IsNullOrWhiteSpace(fileExtension)) return new OperationResult<DownloadImageDTO>()
             {
@@ -139,7 +140,7 @@ namespace Gifter.Services.Services
 
             try
             {
-                var storedImage = await filesService.GetStoredImageAsync(userId, wish.WishListId.ToString(), wish.Image.FileName);
+                var storedImage = await filesService.GetStoredImageAsync(userId, wish.WishList.DirectoryName, wish.Image.FileName);
 
                 return new OperationResult<DownloadImageDTO>()
                 {
@@ -179,9 +180,12 @@ namespace Gifter.Services.Services
             //2. Delete image from db
             try
             {
+                var wishlistDir = image.Wish.WishList.DirectoryName;
+                var imageFileName = image.FileName;
+
                 dbContext.Images.Remove(image);
                 await dbContext.SaveChangesAsync();
-                filesService.DeleteImage(userId, image.Wish.WishList.DirectoryName, image.Wish.Image.FileName);
+                filesService.DeleteImage(userId, wishlistDir, imageFileName);
             }
             catch (Exception ex)
             {

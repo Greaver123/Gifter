@@ -97,12 +97,12 @@ namespace Gifter.Services.Services
                 };
 
             ////Check if there is image to be deleted from filesystem
-            var imageToDeletePath = wish.Image?.Path;
+            var imageToDeleteFilename = wish.Image?.FileName;
 
             dbContext.Wishes.Remove(wish);
             await dbContext.SaveChangesAsync();
 
-            if (!string.IsNullOrWhiteSpace(imageToDeletePath)) filesService.DeleteImage(userId, wish.WishList.DirectoryName, wish.Image.FileName);
+            if (!string.IsNullOrWhiteSpace(imageToDeleteFilename)) filesService.DeleteImage(userId, wish.WishList.DirectoryName, wish.Image.FileName);
 
             return new OperationResult<bool>()
             {

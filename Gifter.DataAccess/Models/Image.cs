@@ -9,9 +9,6 @@ namespace Gifter.DataAccess.Models
         [Required]
         public string FileName { get; set; }
 
-        [Required]
-        public string Path { get; set; }
-
         public int WishId { get; set; }
 
         public Wish Wish { get; set; }
