@@ -217,6 +217,7 @@ namespace Gifter.Services.Services
 
             var wishlist = await dbContext.Wishlists
                 .Include(w => w.Wishes)
+                .ThenInclude(w=>w.Image)
                 .Include(w => w.User)
                 .Include(w => w.GiftGroup)
                     .ThenInclude(g => g.Event)
@@ -239,7 +240,8 @@ namespace Gifter.Services.Services
                         Id = wish.Id,
                         Name = wish.Name,
                         Link = wish.URL,
-                        Price = wish.Price
+                        Price = wish.Price,
+                        ImageId = wish.Image?.Id
                     });
                 }
 
