@@ -19,17 +19,15 @@ class ImageInput extends Component {
       const imgUrl = URL.createObjectURL(selectedImage);
       this.setState({ newImageUrl: imgUrl });
 
-      const imageSelected = this.props?.imageSelected;
+      const uploadImg = this.props?.uploadImage;
 
-      if (imageSelected) {
-        imageSelected(this.props.wishId, selectedImage);
-      }
+      if (!uploadImg) return;
+      uploadImg(this.props.wishId, selectedImage);
     }
   };
 
   deleteImage = () => {
     this.props.deleteImage();
-    // this.props.deleteImage();
   };
 
   selectImage = () => {

@@ -25,12 +25,10 @@ class Dropdown extends Component {
   };
 
   componentDidMount() {
-    console.log('[Dropdown] componentDidMount');
     window.addEventListener('click', this.closeOptions);
   }
 
   componentWillUnmount() {
-    console.log('[Dropdown] componentWillUnmount');
     window.removeEventListener('click', this.closeOptions);
   }
 

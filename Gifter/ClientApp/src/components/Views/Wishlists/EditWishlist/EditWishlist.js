@@ -132,8 +132,6 @@ class EditWishlist extends Component {
     formData.append('ImageFile', image);
     formData.append('wishId', wishId);
 
-    console.log('IMAGE SELECTED');
-    console.log(image);
     axiosDevInstance
       .post('/image/upload', formData, {
         headers: {
@@ -147,7 +145,7 @@ class EditWishlist extends Component {
           case apiStatusCodes.FAIL:
           case apiStatusCodes.ERROR:
             console.log(response.data.data.message);
-            break;
+           break;
         }
       })
       .catch((error) => {
@@ -160,34 +158,36 @@ class EditWishlist extends Component {
     const token = await getAccessTokenSilently();
 
     this.state.wishes.forEach((wish) => {
-      axiosDevInstance
-        .get(`/image/${wish.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          switch (response.data.status) {
-            case apiStatusCodes.SUCCESS:
-              const updatedWishes = [...this.state.wishes];
-              const wishes = updatedWishes.map((w) => {
-                if (w.id == wish.id) {
-                  w.image = response.data.data.image;
-                }
-                return w;
-              });
-              this.setState({ wishes: wishes });
-              break;
-            case apiStatusCodes.FAIL:
-            case apiStatusCodes.ERROR:
-              console.log(response.data.message);
-              break;
-          }
-        })
-        .catch((error) => {
-          //TODO
-          console.log(error);
-        });
+      if (wish.imageId !== null) {
+        axiosDevInstance
+          .get(`/image/${wish.imageId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          .then((response) => {
+            switch (response.data.status) {
+              case apiStatusCodes.SUCCESS:
+                const updatedWishes = [...this.state.wishes];
+                const wishes = updatedWishes.map((w) => {
+                  if (w.id == wish.id) {
+                    w.image = response.data.data.image;
+                  }
+                  return w;
+                });
+                this.setState({ wishes: wishes });
+                break;
+              case apiStatusCodes.FAIL:
+              case apiStatusCodes.ERROR:
+                console.log(response.data.message);
+                break;
+            }
+          })
+          .catch((error) => {
+            //TODO
+            console.log(error);
+          });
+      }
     });
   };
 
@@ -219,30 +219,37 @@ class EditWishlist extends Component {
       });
   };
 
-  deleteImage = async () => {
+  deleteImage = async (imageId) => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
     console.log('[EditWishList] deleteImage()');
-    // axiosDevInstance
-    //   .delete('/image/delete',{
-    //     headers: {
-    //       Authorization: `Bearer ${token}`,
-    //     },
-    //   })
-    //   .then((response) => {
-    //     switch (response.data.status) {
-    //       case apiStatusCodes.SUCCESS:
-    //         break;
-    //       case apiStatusCodes.FAIL:
-    //       case apiStatusCodes.ERROR:
-    //         console.log(response.data.data.message);
-    //         break;
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     console.log('Could not upload image', error);
-    //   });
+    axiosDevInstance
+      .delete(`/image/${imageId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        switch (response.data.status) {
+          case apiStatusCodes.SUCCESS:
+            const updatedWishes = [...this.state.wishes];
+            const imageToDeleteId = updatedWishes.findIndex(
+              (w) => w.imageId == imageId
+            );
+
+            updatedWishes[imageToDeleteId].image = null;
+            this.setState({ wishes: updatedWishes });
+            break;
+          case apiStatusCodes.FAIL:
+          case apiStatusCodes.ERROR:
+            console.log(response.data.data.message);
+            break;
+        }
+      })
+      .catch((error) => {
+        console.log('Could not upload image', error);
+      });
   };
 
   async componentDidMount() {
@@ -290,8 +297,8 @@ class EditWishlist extends Component {
           price={wish.price}
           image={wish.image}
           changed={this.onInputChange}
-          imageSelected={this.uploadImage}
-          deleteImage={this.deleteImage}
+          uploadImage={this.uploadImage}
+          deleteImage={this.deleteImage.bind(this, wish.imageId)}
         />
       );
     });
