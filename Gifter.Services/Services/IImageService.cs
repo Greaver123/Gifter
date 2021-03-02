@@ -26,6 +26,15 @@ namespace Gifter.Services.Services
         Task<OperationResult<DownloadImageDTO>> DownloadImageAsync(int wishId, string userId);
 
         /// <summary>
+        /// Gets image by id.
+        /// </summary>
+        /// <param name="wishId">Id of image</param>
+        /// <param name="userId">Id of user</param>
+        /// <returns><para>OperationResult "Success" with image in Base64 if image found.</para> <para> OperationResult "Fail" if Image/Wish not found. </para>
+        /// <para>OperationResult "Error" if file corrupted and could not load file. </para></returns>
+        Task<OperationResult<DownloadImageDTO>> GetImageAsync(int imageId, string userId);
+
+        /// <summary>
         /// Upload file to db and filesystem for given user.
         /// </summary>
         /// <param name="uploadImageDTO">Image to be uploaded with wishlist id</param>

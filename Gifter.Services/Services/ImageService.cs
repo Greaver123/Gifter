@@ -45,6 +45,7 @@ namespace Gifter.Services.Services
             var wish = await dbContext.Wishes
                 .Include(w => w.WishList)
                 .ThenInclude(wl => wl.User)
+                .Include(w => w.Image)
                 .FirstOrDefaultAsync(w => w.Id == uploadImageDTO.WishId && w.WishList.User.Auth0Id == userId);
 
             if (wish == null) return new OperationResult<object>()

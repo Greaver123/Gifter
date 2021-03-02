@@ -16,11 +16,11 @@ namespace Gifter.Controllers
     [Authorize]
     public class ImageController : ControllerBase
     {
-        private readonly IImageService uploadService;
+        private readonly IImageService imageService;
 
-        public ImageController(IImageService uploadService)
+        public ImageController(IImageService imageService)
         {
-            this.uploadService = uploadService;
+            this.imageService = imageService;
         }
 
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -29,7 +29,7 @@ namespace Gifter.Controllers
         [HttpPost("upload")]
         public async Task<IActionResult> Post([FromForm] UploadImageDTO uploadImageDTO)
         {
-            var operationResult = await uploadService.UploadImageAsync(uploadImageDTO, User.SubjectId());
+            var operationResult = await imageService.UploadImageAsync(uploadImageDTO, User.SubjectId());
 
             switch (operationResult.Status)
             {
@@ -47,10 +47,10 @@ namespace Gifter.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet("{wishId:int}")]
-        public async Task<IActionResult> Get(int wishId)
+        [HttpGet("{imageId:int}")]
+        public async Task<IActionResult> Get(int imageId)
         {
-            var operationResult = await uploadService.DownloadImageAsync(wishId, User.SubjectId());
+            var operationResult = await imageService.GetImageAsync(imageId, User.SubjectId());
 
             switch (operationResult.Status)
             {
@@ -68,23 +68,22 @@ namespace Gifter.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpDelete("{wishId:int}")]
-        public async Task<IActionResult> Delete(int wishId)
+        [HttpDelete("{imageId:int}")]
+        public async Task<IActionResult> Delete(int imageId)
         {
-            return NotFound();
-            //var operationResult = await uploadService.Delete(wishId, User.SubjectId());
+            var operationResult = await imageService.DeleteImageAsync(imageId, User.SubjectId());
 
-            //switch (operationResult.Status)
-            //{
-            //    case OperationStatus.SUCCESS:
-            //        return Ok(operationResult);
-            //    case OperationStatus.FAIL:
-            //        return NotFound(operationResult);
-            //    case OperationStatus.ERROR:
-            //        return StatusCode(StatusCodes.Status500InternalServerError, operationResult);
-            //    default:
-            //        return Ok(operationResult);
-            //}
+            switch (operationResult.Status)
+            {
+                case OperationStatus.SUCCESS:
+                    return Ok(operationResult);
+                case OperationStatus.FAIL:
+                    return NotFound(operationResult);
+                case OperationStatus.ERROR:
+                    return StatusCode(StatusCodes.Status500InternalServerError, operationResult);
+                default:
+                    return Ok(operationResult);
+            }
         }
     }
 }
