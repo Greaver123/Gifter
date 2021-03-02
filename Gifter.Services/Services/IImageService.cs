@@ -5,8 +5,18 @@ using System.Threading.Tasks;
 
 namespace Gifter.Services.Services
 {
-    public interface IUploadService
+    public interface IImageService
     {
+
+        /// <summary>
+        /// Deletes image by id.
+        /// </summary>
+        /// <param name="wishId">Id of image.</param>
+        /// <param name="userId">Id of user.</param>
+        /// <returns><para>OperationResult "Success" image found and deleted.</para> <para> OperationResult "Fail" if Image not found. </para>
+        /// <para>OperationResult "Error" if problem connecting with db.</para></returns>
+        Task<OperationResult<object>> DeleteImageAsync(int imageId, string userId);
+
         /// <summary>
         /// Gets image for given wishId.
         /// </summary>
@@ -22,6 +32,6 @@ namespace Gifter.Services.Services
         /// <param name="userId">Id of user</param>
         /// <returns>OperationResult success if image saved on filesystem and in db. 
         /// <para>Fail if could not find wish for given id. </para><para> Error if some exception occured durning execution.</para></returns>
-        Task<OperationResult<object>> UploadAsync(UploadImageDTO uploadImageDTO, string userId);
+        Task<OperationResult<object>> UploadImageAsync(UploadImageDTO uploadImageDTO, string userId);
     }
 }

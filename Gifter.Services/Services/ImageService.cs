@@ -15,13 +15,13 @@ using System.Threading.Tasks;
 
 namespace Gifter.Services.Services
 {
-    public class UploadService : IUploadService
+    public class ImageService : IImageService
     {
         private readonly GifterDbContext dbContext;
         private readonly StoreOptions options;
         private readonly IFilesService filesService;
 
-        public UploadService(GifterDbContext dbContext,
+        public ImageService(GifterDbContext dbContext,
             IOptions<StoreOptions> options,
             IFilesService filesService)
         {
@@ -37,7 +37,7 @@ namespace Gifter.Services.Services
         /// <param name="userId">Id of user</param>
         /// <returns>OperationResult success if image saved on filesystem and in db. 
         /// <para>Fail if could not find wish for given id. </para><para> Error if some exception occured durning execution.</para></returns>
-        public async Task<OperationResult<object>> UploadAsync(UploadImageDTO uploadImageDTO, string userId)
+        public async Task<OperationResult<object>> UploadImageAsync(UploadImageDTO uploadImageDTO, string userId)
         {
             Guard.IsNull(uploadImageDTO, nameof(uploadImageDTO));
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
@@ -69,7 +69,7 @@ namespace Gifter.Services.Services
                 }
 
                 await dbContext.SaveChangesAsync();
-                
+
                 //Delete old file
                 if (!string.IsNullOrWhiteSpace(fileToDelete)) filesService.DeleteImage(userId, wish.WishList.DirectoryName, fileToDelete);
             }
@@ -87,7 +87,7 @@ namespace Gifter.Services.Services
                     //File was saved on filesystem so do cleanup and delete that file
 
                     filesService.DeleteImage(userId, wish.WishList.DirectoryName, wish.Image.FileName);
-                   
+
                     return operationFailResult;
                 }
 
@@ -162,9 +162,71 @@ namespace Gifter.Services.Services
             }
         }
 
-        public async Task<OperationResult<object>> DeleteImageFromWish(int imageId, string userId)
+        /// <summary>
+        /// Gets image by id.
+        /// </summary>
+        /// <param name="wishId">Id of image</param>
+        /// <param name="userId">Id of user</param>
+        /// <returns><para>OperationResult "Success" with image in Base64 if image found.</para> <para> OperationResult "Fail" if Image/Wish not found. </para>
+        /// <para>OperationResult "Error" if file corrupted and could not load file. </para></returns>
+        public async Task<OperationResult<DownloadImageDTO>> GetImageAsync(int imageId, string userId)
         {
-            //1. Find image to delete
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+
+            var image = await dbContext.Images
+                .Include(i => i.Wish)
+                .ThenInclude(wl => wl.WishList)
+                .ThenInclude(u => u.User)
+                .FirstOrDefaultAsync(i => i.Id == imageId && i.Wish.WishList.User.Auth0Id == userId);
+
+            if (image == null) return new OperationResult<DownloadImageDTO>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = MessageHelper.CreateEntityNotFoundMessage(nameof(Image), imageId)
+            };
+
+            var filePath = $"{options.BaseDirectory}\\{userId}\\{image.FileName}";
+            var fileExtension = Path.GetExtension(filePath);
+
+            if (string.IsNullOrWhiteSpace(fileExtension)) return new OperationResult<DownloadImageDTO>()
+            {
+                Status = OperationStatus.ERROR,
+                Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.read)
+            };
+
+            try
+            {
+                var storedImage = await filesService.GetStoredImageAsync(userId, image.Wish.WishList.DirectoryName, image.FileName);
+
+                return new OperationResult<DownloadImageDTO>()
+                {
+                    Status = OperationStatus.SUCCESS,
+                    Data = new DownloadImageDTO()
+                    {
+                        FileExtension = fileExtension.Remove(0, 1), //Remove "." from extension string
+                        Image = "data:image/png;base64," + Convert.ToBase64String(storedImage)
+                    }
+                };
+            }
+            catch (FileServiceException)
+            {
+                return new OperationResult<DownloadImageDTO>()
+                {
+                    Status = OperationStatus.ERROR,
+                    Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.read)
+                };
+            }
+        }
+
+        /// <summary>
+        /// Deletes image by id.
+        /// </summary>
+        /// <param name="wishId">Id of image.</param>
+        /// <param name="userId">Id of user.</param>
+        /// <returns><para>OperationResult "Success" image found and deleted.</para> <para> OperationResult "Fail" if Image not found. </para>
+        /// <para>OperationResult "Error" if problem connecting with db.</para></returns>
+        public async Task<OperationResult<object>> DeleteImageAsync(int imageId, string userId)
+        {
             var image = await dbContext.Images
                 .Include(i => i.Wish)
                 .ThenInclude(w => w.WishList)
@@ -177,7 +239,6 @@ namespace Gifter.Services.Services
                 Message = MessageHelper.CreateEntityNotFoundMessage(nameof(Image), imageId)
             };
 
-            //2. Delete image from db
             try
             {
                 var wishlistDir = image.Wish.WishList.DirectoryName;

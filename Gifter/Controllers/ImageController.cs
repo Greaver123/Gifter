@@ -16,9 +16,9 @@ namespace Gifter.Controllers
     [Authorize]
     public class ImageController : ControllerBase
     {
-        private readonly IUploadService uploadService;
+        private readonly IImageService uploadService;
 
-        public ImageController(IUploadService uploadService)
+        public ImageController(IImageService uploadService)
         {
             this.uploadService = uploadService;
         }
@@ -29,7 +29,7 @@ namespace Gifter.Controllers
         [HttpPost("upload")]
         public async Task<IActionResult> Post([FromForm] UploadImageDTO uploadImageDTO)
         {
-            var operationResult = await uploadService.UploadAsync(uploadImageDTO, User.SubjectId());
+            var operationResult = await uploadService.UploadImageAsync(uploadImageDTO, User.SubjectId());
 
             switch (operationResult.Status)
             {
@@ -63,6 +63,28 @@ namespace Gifter.Controllers
                 default:
                     return Ok(operationResult);
             }
+        }
+
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpDelete("{wishId:int}")]
+        public async Task<IActionResult> Delete(int wishId)
+        {
+            return NotFound();
+            //var operationResult = await uploadService.Delete(wishId, User.SubjectId());
+
+            //switch (operationResult.Status)
+            //{
+            //    case OperationStatus.SUCCESS:
+            //        return Ok(operationResult);
+            //    case OperationStatus.FAIL:
+            //        return NotFound(operationResult);
+            //    case OperationStatus.ERROR:
+            //        return StatusCode(StatusCodes.Status500InternalServerError, operationResult);
+            //    default:
+            //        return Ok(operationResult);
+            //}
         }
     }
 }
