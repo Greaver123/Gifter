@@ -37,7 +37,7 @@ namespace Gifter.Services.Services
         /// <param name="userId">Id of user</param>
         /// <returns>OperationResult success if image saved on filesystem and in db. 
         /// <para>Fail if could not find wish for given id. </para><para> Error if some exception occured durning execution.</para></returns>
-        public async Task<OperationResult<object>> UploadImageAsync(UploadImageDTO uploadImageDTO, string userId)
+        public async Task<OperationResult<ImageDTO>> UploadImageAsync(UploadImageDTO uploadImageDTO, string userId)
         {
             Guard.IsNull(uploadImageDTO, nameof(uploadImageDTO));
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
@@ -48,7 +48,7 @@ namespace Gifter.Services.Services
                 .Include(w => w.Image)
                 .FirstOrDefaultAsync(w => w.Id == uploadImageDTO.WishId && w.WishList.User.Auth0Id == userId);
 
-            if (wish == null) return new OperationResult<object>()
+            if (wish == null) return new OperationResult<ImageDTO>()
             {
                 Status = OperationStatus.FAIL,
                 Message = MessageHelper.CreateEntityNotFoundMessage(nameof(Wish), uploadImageDTO.WishId),
@@ -76,7 +76,7 @@ namespace Gifter.Services.Services
             }
             catch (Exception ex)
             {
-                var operationFailResult = new OperationResult<object>()
+                var operationFailResult = new OperationResult<ImageDTO>()
                 {
                     Status = OperationStatus.ERROR,
                     Message = MessageHelper.CreateOperationErrorMessage(nameof(Image), OperationType.create)
@@ -95,10 +95,12 @@ namespace Gifter.Services.Services
                 throw;
             }
 
-            return new OperationResult<object>()
+            return new OperationResult<ImageDTO>()
             {
                 Status = OperationStatus.SUCCESS,
-                Message = MessageHelper.CreateOperationSuccessMessage(nameof(Image), OperationType.create)
+                Message = MessageHelper.CreateOperationSuccessMessage(nameof(Image), OperationType.create),
+                Data = new ImageDTO() { Id = wish.Image.Id,WishId = wish.Id}
+                
             };
         }
 

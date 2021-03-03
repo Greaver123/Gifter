@@ -1,5 +1,4 @@
 ﻿using Gifter.Services.Common;
-using Gifter.Services.DTOs.Image;
 using Gifter.Services.DTOS.Image;
 using System.Threading.Tasks;
 
@@ -41,6 +40,6 @@ namespace Gifter.Services.Services
         /// <param name="userId">Id of user</param>
         /// <returns>OperationResult success if image saved on filesystem and in db. 
         /// <para>Fail if could not find wish for given id. </para><para> Error if some exception occured durning execution.</para></returns>
-        Task<OperationResult<object>> UploadImageAsync(UploadImageDTO uploadImageDTO, string userId);
+        Task<OperationResult<ImageDTO>> UploadImageAsync(UploadImageDTO uploadImageDTO, string userId);
     }
 }
