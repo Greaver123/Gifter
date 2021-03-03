@@ -78,9 +78,6 @@ class EditWishlist extends Component {
       )
       .then((response) => {
         let updatedWishes = [...this.state.wishes];
-        // let newIndex = updatedWishes.length
-        //   ? Math.max(...updatedWishes.map((w) => w.id)) + 1
-        //   : 1;
         updatedWishes.push({
           id: response.data.data.id,
           name: '',
@@ -132,63 +129,92 @@ class EditWishlist extends Component {
     formData.append('ImageFile', image);
     formData.append('wishId', wishId);
 
-    axiosDevInstance
-      .post('/image/upload', formData, {
+    let result = false;
+
+    try {
+      const response = await axiosDevInstance.post('/image/upload', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      .then((response) => {
-        switch (response.data.status) {
-          case apiStatusCodes.SUCCESS:
-            break;
-          case apiStatusCodes.FAIL:
-          case apiStatusCodes.ERROR:
-            console.log(response.data.data.message);
-           break;
-        }
-      })
-      .catch((error) => {
-        console.log('Could not upload image', error);
       });
+
+      if (response.data.status !== apiStatusCodes.SUCCESS) {
+        alert(response.data.data.message);
+      }
+
+      const wishes = [...this.state.wishes];
+      const wishToUpdateId = wishes.findIndex((w) => w.id === wishId);
+
+      wishes[wishToUpdateId].imageId = response.data.data.id;
+      wishes[wishToUpdateId].image = URL.createObjectURL(image);
+      this.setState({
+        wishes: wishes,
+      });
+
+      result = true;
+    } catch (error) {
+      alert(error);
+    } finally {
+      return result;
+    }
   };
 
-  getImages = async () => {
+  fetchImage = async (token, imageId) => {
+    try {
+      let response = await axiosDevInstance.get(`/image/${imageId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.status !== apiStatusCodes.SUCCESS) {
+        alert('Something went wrong retriving images');
+        return;
+      }
+
+      return response.data.data.image;
+    } catch (error) {
+      alert(error);
+    }
+  };
+
+  fetchImages = async () => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
-    this.state.wishes.forEach((wish) => {
-      if (wish.imageId !== null) {
-        axiosDevInstance
-          .get(`/image/${wish.imageId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .then((response) => {
-            switch (response.data.status) {
-              case apiStatusCodes.SUCCESS:
-                const updatedWishes = [...this.state.wishes];
-                const wishes = updatedWishes.map((w) => {
-                  if (w.id == wish.id) {
-                    w.image = response.data.data.image;
-                  }
-                  return w;
-                });
-                this.setState({ wishes: wishes });
-                break;
-              case apiStatusCodes.FAIL:
-              case apiStatusCodes.ERROR:
-                console.log(response.data.message);
-                break;
-            }
-          })
-          .catch((error) => {
-            //TODO
-            console.log(error);
-          });
-      }
-    });
+    const wishesUpdate = [...this.state.wishes];
+
+    await Promise.all(
+      wishesUpdate.map(async (wish) => {
+        if (wish.imageId !== null)
+          wish.image = await this.fetchImage(token, wish.imageId);
+      })
+    );
+
+    this.setState({ wishes: wishesUpdate });
+  };
+
+  fetchWishlist = async (id) => {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    let wishlist = null;
+
+    try {
+      const response = await axiosDevInstance.get(`/wishlist/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!apiStatusCodes.SUCCESS) alert('Something went wrong');
+
+      wishlist = response.data.data;
+    } catch (error) {
+      console.log(error);
+    } finally {
+      return wishlist;
+    }
   };
 
   saveWishlist = async () => {
@@ -223,7 +249,6 @@ class EditWishlist extends Component {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
-    console.log('[EditWishList] deleteImage()');
     axiosDevInstance
       .delete(`/image/${imageId}`, {
         headers: {
@@ -253,39 +278,29 @@ class EditWishlist extends Component {
   };
 
   async componentDidMount() {
-    const { getAccessTokenSilently } = this.props.auth0;
-    const token = await getAccessTokenSilently();
-
+    console.log('[EditWishlist] COMPONENT_DID_MOUNT');
     this.setState({ loading: true });
 
-    axiosDevInstance
-      .get(`/wishlist/${this.state.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        this.setState({ loading: false });
-        this.setState({
-          title: response.data.data.title,
-          wishes: response.data.data.wishes?.map((w) => {
-            w.name = w.name ?? '';
-            w.link = w.link ?? '';
-            w.price = w.price ?? '';
-            w.isNew = false;
-            return w;
-          }),
-        });
+    let wishlist = await this.fetchWishlist(this.state.id);
 
-        this.getImages();
-      })
-      .catch((error) => {
-        this.setState({ loading: false });
-        console.log('Could not load data', error);
-      });
+    if (!wishlist) alert('Could not fetch Wishlist');
+
+    this.setState({
+      loading: false,
+      title: wishlist.title,
+      wishes: wishlist.wishes?.map((w) => {
+        w.name = w.name ?? '';
+        w.link = w.link ?? '';
+        w.price = w.price ?? '';
+        w.isNew = false;
+        return w;
+      }),
+    });
+    await this.fetchImages();
   }
 
   render() {
+    console.log('[EditWishlist] RENDER');
     let wishes = this.state.wishes.map((wish, index) => {
       return (
         <Wish

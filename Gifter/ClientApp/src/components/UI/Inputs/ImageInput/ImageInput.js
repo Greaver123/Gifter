@@ -1,33 +1,33 @@
 import React, { Component } from 'react';
 import classes from './ImageInput.module.css';
 import defaultImage from '../../../../assets/images/imagePreview256px.png';
-import LoadingIndicator from '../../LoadingIndicator/LoadingIndicator';
 
 class ImageInput extends Component {
   imageInput = React.createRef();
 
   state = {
-    newImageUrl: null,
     overlay: false,
-    isLoading: false,
     isUploading: false,
   };
 
-  uploadImage = () => {
-    if (this.imageInput.current.files.length) {
-      const selectedImage = this.imageInput.current.files[0];
-      const imgUrl = URL.createObjectURL(selectedImage);
-      this.setState({ newImageUrl: imgUrl });
+  handleImageChange = async () => {
+    this.setState({ isUploading: true });
 
-      const uploadImg = this.props?.uploadImage;
+    if (this.imageInput.current.files.length === 0) return;
+    const selectedImage = this.imageInput.current.files[0];
 
-      if (!uploadImg) return;
-      uploadImg(this.props.wishId, selectedImage);
-    }
+    if (!this.props?.uploadImage) return;
+
+    await this.props.uploadImage(this.props.wishId, selectedImage);
+
+    this.setState({ isUploading: false });
   };
 
   deleteImage = () => {
-    this.props.deleteImage();
+    console.log(this.deleteImage);
+    if (!this.state.isUploading) {
+      this.props.deleteImage();
+    }
   };
 
   selectImage = () => {
@@ -60,7 +60,7 @@ class ImageInput extends Component {
           <button className={classes.BtnUpload} onClick={this.selectImage}>
             Select
           </button>
-          {this.state.newImageUrl != null || this.props.image != null ? (
+          {this.props.image != null ? (
             <button className={classes.BtnDelete} onClick={this.deleteImage}>
               Delete
             </button>
@@ -81,17 +81,11 @@ class ImageInput extends Component {
             ref={this.imageInput}
             type="file"
             accept="image/png, image/jpeg, image/gif"
-            onChange={this.uploadImage}
+            onChange={this.handleImageChange}
           />
           <img
             type="image"
-            src={
-              this.state.newImageUrl
-                ? this.state.newImageUrl
-                : this.props.image
-                ? this.props.image
-                : defaultImage
-            }
+            src={this.props.image ? this.props.image : defaultImage}
             alt="image/photo of wish"
           ></img>
           {this.state.overlay ? overlay : null}
