@@ -94,17 +94,17 @@ class EditWishlist extends Component {
   };
 
   onInputChange = (e) => {
+    console.log(e.target.value);
+    console.log(e.target.name);
     let value = e.target.value;
-    const wishId = Number(
-      e.target.parentElement.parentElement.attributes['data-id'].value
-    );
+    const wishId = Number(e.target.closest('div[data-id]').dataset.id);
     let updatedWishes = [...this.state.wishes];
     const found = updatedWishes.find((wish) => wish.id === wishId);
     found[e.target.name] = value;
     this.setState({ wishes: updatedWishes });
   };
 
-  deleteWishlist = () => {
+  showDeleteWishlistModal = () => {
     this.setState({ showDeleteModal: true });
   };
 
@@ -194,6 +194,14 @@ class EditWishlist extends Component {
     this.setState({ wishes: wishesUpdate });
   };
 
+  deleteLink = async (wishId) => {
+    console.log('DELETE LINK', wishId);
+    const updatedWishes = [...this.state.wishes];
+    let index = updatedWishes.findIndex((w) => w.id === wishId);
+    updatedWishes[index].link = '';
+    this.setState(updatedWishes);
+  };
+
   fetchWishlist = async (id) => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
@@ -249,32 +257,30 @@ class EditWishlist extends Component {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
-    axiosDevInstance
-      .delete(`/image/${imageId}`, {
+    let isSuccess = false;
+
+    try {
+      let response = await axiosDevInstance.delete(`/image/${imageId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      .then((response) => {
-        switch (response.data.status) {
-          case apiStatusCodes.SUCCESS:
-            const updatedWishes = [...this.state.wishes];
-            const imageToDeleteId = updatedWishes.findIndex(
-              (w) => w.imageId == imageId
-            );
-
-            updatedWishes[imageToDeleteId].image = null;
-            this.setState({ wishes: updatedWishes });
-            break;
-          case apiStatusCodes.FAIL:
-          case apiStatusCodes.ERROR:
-            console.log(response.data.data.message);
-            break;
-        }
-      })
-      .catch((error) => {
-        console.log('Could not upload image', error);
       });
+
+      if (response.data.status === apiStatusCodes.SUCCESS) {
+        const updatedWishes = [...this.state.wishes];
+        const imageToDeleteId = updatedWishes.findIndex(
+          (w) => w.imageId == imageId
+        );
+
+        updatedWishes[imageToDeleteId].image = null;
+        this.setState({ wishes: updatedWishes });
+        isSuccess = true;
+      }
+    } catch (error) {
+      alert('Something went wrong.');
+    } finally {
+      return isSuccess;
+    }
   };
 
   async componentDidMount() {
@@ -290,12 +296,13 @@ class EditWishlist extends Component {
       title: wishlist.title,
       wishes: wishlist.wishes?.map((w) => {
         w.name = w.name ?? '';
-        w.link = w.link ?? '';
+        w.link = w.link ?? null;
         w.price = w.price ?? '';
         w.isNew = false;
         return w;
       }),
     });
+
     await this.fetchImages();
   }
 
@@ -314,6 +321,7 @@ class EditWishlist extends Component {
           changed={this.onInputChange}
           uploadImage={this.uploadImage}
           deleteImage={this.deleteImage.bind(this, wish.imageId)}
+          onDeleteLink={this.deleteLink.bind(this, wish.id)}
         />
       );
     });
@@ -333,7 +341,7 @@ class EditWishlist extends Component {
           <Dropdown items={this.state.giftGroups} />
         </div>
         <div className={classes.Buttons}>
-          <Button type="Delete" clicked={this.deleteWishlist}>
+          <Button type="Delete" clicked={this.showDeleteWishlistModal}>
             Delete
           </Button>
           <div>

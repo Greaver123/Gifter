@@ -1,5 +1,6 @@
 import React from 'react';
 import ImageInput from '../../../../UI/Inputs/ImageInput/ImageInput';
+import LinkInput from '../../../../UI/Inputs/LinkInput/LinkInput';
 import classes from './Wish.module.css';
 
 const Wish = (props) => {
@@ -19,14 +20,14 @@ const Wish = (props) => {
           onChange={props.changed}
           disabled={props.displayOnly}
         />
-        <input
+        {/* <input
           type="url"
           name="link"
           placeholder="Link"
           value={props.link}
           onChange={props.changed}
           disabled={props.displayOnly}
-        />
+        /> */}
         <input
           type="text"
           name="price"
@@ -34,6 +35,11 @@ const Wish = (props) => {
           value={props.price}
           onChange={props.changed}
           disabled={props.displayOnly}
+        />
+        <LinkInput
+          url={props.link}
+          onChange={props.changed}
+          onDeleteLink={props.onDeleteLink}
         />
       </div>
       <div className={classes.ImagePreview}>
