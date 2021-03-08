@@ -5,13 +5,14 @@ import { useState, useEffect, useRef } from 'react';
 const LinkInput = (props) => {
   const [isVisibleEditWindow, setIsVisibleEditWindow] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isToolbarVisible, setIsToolbarVisible] = useState(false);
   const urlInput = useRef(null);
 
   // useEffect(() => {
   //   document.addEventListener('click', function (e) {
   //     if (!e.target.classList.contains(classes.EditWindow)) {
   //       console.log('event');
-  //       // setIsVisibleEditWindow(false);
+  //       setIsVisibleEditWindow(false);
   //     }
   //   });
   // });
@@ -21,6 +22,7 @@ const LinkInput = (props) => {
   };
 
   const startEditMode = function () {
+    console.log(urlInput);
     setIsEditMode(true);
     // urlInput.current.focus();
     console.log('Edit mode');
@@ -32,50 +34,48 @@ const LinkInput = (props) => {
     setIsVisibleEditWindow(false);
   };
 
-  const deleteLink = function () {
+  const deleteLink = function (e) {
     console.log('Delete link');
     //props.deleteLink();
     props.onDeleteLink();
-    setIsVisibleEditWindow(false);
+    // setIsVisibleEditWindow(false);
+    setIsEditMode(true);
   };
 
-  const addLink = function () {
-    setIsVisibleEditWindow(true);
-    setIsEditMode(true);
-    console.log(urlInput.current);
-    // urlInput.current.focus();
+  const showToolbar = function () {
+    setIsToolbarVisible((prevState) => !prevState);
   };
 
   const placeholderText = 'Enter URL';
 
   const toolbar = (
     <div className={classes.Toolbar}>
-      {isEditMode ? (
-        <React.Fragment>
-          {props.url !== '' && props.url !== null ? (
-            <button
-              className={`${classes.SaveLinkButton} ${classes.ToolbarBtn}`}
-              onClick={saveLink}
-            >
-              S
-            </button>
-          ) : null}
-
+      <React.Fragment>
+        {isEditMode ? (
           <button
-            className={`${classes.DeleteLinkButton} ${classes.ToolbarBtn}`}
-            onClick={deleteLink}
+            className={`${classes.SaveLinkButton} ${classes.ToolbarBtn}`}
+            onClick={saveLink}
           >
-            D
+            S
           </button>
-        </React.Fragment>
-      ) : (
+        ) : null}
+
+        {!isEditMode ? (
+          <button
+            className={`${classes.EditLinkButton} ${classes.ToolbarBtn}`}
+            onClick={startEditMode}
+          >
+            E
+          </button>
+        ) : null}
+
         <button
-          className={`${classes.EditLinkButton} ${classes.ToolbarBtn}`}
-          onClick={startEditMode}
+          className={`${classes.DeleteLinkButton} ${classes.ToolbarBtn}`}
+          onClick={deleteLink}
         >
-          E
+          X
         </button>
-      )}
+      </React.Fragment>
     </div>
   );
 
@@ -108,19 +108,15 @@ const LinkInput = (props) => {
   );
 
   const editWindow = (
-    <div className={classes.EditWindow}>
-      {!isEditMode
-        ? props.url === null || props.url === ''
-          ? linkPlaceholder
-          : editWindowLink
-        : input}
-      {toolbar}
+    <div className={classes.EditWindow} onTransitionEnd={showToolbar}>
+      {isEditMode ? input : props.url === null ? input : editWindowLink}
+      {props.url === null || props.url === '' ? null : toolbar}
     </div>
   );
 
   const link = (
     <div className={classes.InputLink}>
-      {isEditMode ? null : (
+      {isEditMode || isVisibleEditWindow ? null : (
         <div className={classes.Link} onClick={showEditWindow}>
           {props.url}
         </div>
@@ -129,15 +125,7 @@ const LinkInput = (props) => {
     </div>
   );
 
-  const addLinkButton = <button onClick={addLink}>Add Link</button>; // Move Up to Wish or EditWishlist ?
-
-  const linkInput =
-    (props.url === null && !isVisibleEditWindow) ||
-    (props.url === '' && !isVisibleEditWindow)
-      ? addLinkButton
-      : link;
-
-  return linkInput;
+  return link;
 };
 
 export default LinkInput;
