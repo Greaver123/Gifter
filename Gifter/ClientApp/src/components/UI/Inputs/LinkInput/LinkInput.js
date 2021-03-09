@@ -1,21 +1,51 @@
 import React from 'react';
 import classes from './LinkInput.module.css';
 import { useState, useEffect, useRef } from 'react';
+import InputToobar from './InputToolbar/InputToolbar';
+import InputUrl from './InputUrl/InputUrl';
+import Link from './Link/Link';
+import LinkButton from './LinkButton/LinkButton';
 
 const LinkInput = (props) => {
   const [isVisibleEditWindow, setIsVisibleEditWindow] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isToolbarVisible, setIsToolbarVisible] = useState(false);
   const urlInput = useRef(null);
+  const linkInputWrapper = useRef(null);
 
   // useEffect(() => {
-  //   document.addEventListener('click', function (e) {
-  //     if (!e.target.classList.contains(classes.EditWindow)) {
-  //       console.log('event');
-  //       setIsVisibleEditWindow(false);
+  //   const closeEditWindow = function (e) {
+  //     console.log('close');
+  //     setIsEditMode(false);
+  //     setIsVisibleEditWindow(false);
+  //   };
+
+  //   const closeEditWindowOnClick = function (e) {
+  //     console.log(isVisibleEditWindow);
+  //     console.dir(e.target);
+
+  //     // const target = e.target.contains(urlInput.current);
+  //     // console.log(target);
+
+  //     console.log(e.target.closest(`.${classes.InputLink}`));
+  //     if (
+  //       isVisibleEditWindow &&
+  //       e.target.closest(`.${classes.InputLink}`) === null
+  //     ) {
+  //       closeEditWindow();
+  //       console.log('close');
   //     }
-  //   });
-  // });
+  //   };
+
+  //   console.log('Use Effect');
+
+  //   document.addEventListener('keydown', closeEditWindow);
+  //   document.addEventListener('click', closeEditWindowOnClick);
+
+  //   return () => {
+  //     document.removeEventListener('keydown', escape);
+  //     document.removeEventListener('click', closeEditWindowOnClick);
+  //   };
+  // }, [linkInput, isVisibleEditWindow]);
 
   const showEditWindow = function () {
     setIsVisibleEditWindow(true);
@@ -24,72 +54,26 @@ const LinkInput = (props) => {
   const startEditMode = function () {
     console.log(urlInput);
     setIsEditMode(true);
-    // urlInput.current.focus();
-    console.log('Edit mode');
   };
 
   const saveLink = function () {
-    console.log('Save link');
+    //TODO POOST
     setIsEditMode(false);
     setIsVisibleEditWindow(false);
   };
 
   const deleteLink = function (e) {
-    console.log('Delete link');
-    //props.deleteLink();
     props.onDeleteLink();
-    // setIsVisibleEditWindow(false);
     setIsEditMode(true);
   };
 
-  const showToolbar = function () {
-    setIsToolbarVisible((prevState) => !prevState);
-  };
-
-  const placeholderText = 'Enter URL';
-
-  const toolbar = (
-    <div className={classes.Toolbar}>
-      <React.Fragment>
-        {isEditMode ? (
-          <button
-            className={`${classes.SaveLinkButton} ${classes.ToolbarBtn}`}
-            onClick={saveLink}
-          >
-            S
-          </button>
-        ) : null}
-
-        {!isEditMode ? (
-          <button
-            className={`${classes.EditLinkButton} ${classes.ToolbarBtn}`}
-            onClick={startEditMode}
-          >
-            E
-          </button>
-        ) : null}
-
-        <button
-          className={`${classes.DeleteLinkButton} ${classes.ToolbarBtn}`}
-          onClick={deleteLink}
-        >
-          X
-        </button>
-      </React.Fragment>
-    </div>
-  );
-
-  const input = (
-    <input
-      ref={urlInput}
-      className={`${classes.UrlInput}`}
-      type="url"
-      value={props.url ?? ''}
-      placeholder={placeholderText}
-      pattern="https://.*"
-      name="link"
-      onBlur={() => {
+  const inputUrl = (
+    <InputUrl
+      url={props.url}
+      onFocusOut={() => {
         console.log('focus out');
+        setIsEditMode(false);
+        setIsVisibleEditWindow(false);
       }}
       onChange={(e) => {
         props.onChange(e);
@@ -97,35 +81,35 @@ const LinkInput = (props) => {
     />
   );
 
-  const editWindowLink = (
-    <a className={classes.Url} href={props.url} target="_blank">
-      {props.url}
-    </a>
-  );
-
-  const linkPlaceholder = (
-    <span className={classes.Placeholder}>{placeholderText}</span>
-  );
-
-  const editWindow = (
-    <div className={classes.EditWindow} onTransitionEnd={showToolbar}>
-      {isEditMode ? input : props.url === null ? input : editWindowLink}
-      {props.url === null || props.url === '' ? null : toolbar}
-    </div>
-  );
-
-  const link = (
-    <div className={classes.InputLink}>
-      {isEditMode || isVisibleEditWindow ? null : (
-        <div className={classes.Link} onClick={showEditWindow}>
-          {props.url}
-        </div>
+  const linkInput = (
+    <div className={classes.LinkInput}>
+      {isEditMode ? (
+        inputUrl
+      ) : props.url === null ? (
+        inputUrl
+      ) : (
+        <Link url={props.url} />
       )}
-      {isVisibleEditWindow ? editWindow : null}
+      {props.url === null || props.url === '' ? null : (
+        <InputToobar
+          editMode={isEditMode}
+          onDeleteClick={deleteLink}
+          onEditClick={startEditMode}
+          onSaveClick={saveLink}
+        />
+      )}
     </div>
   );
 
-  return link;
+  return (
+    <div ref={linkInputWrapper} className={classes.LinkInputWrapper}>
+      {isVisibleEditWindow ? (
+        linkInput
+      ) : (
+        <LinkButton url={props.url} onClick={showEditWindow} />
+      )}
+    </div>
+  );
 };
 
 export default LinkInput;

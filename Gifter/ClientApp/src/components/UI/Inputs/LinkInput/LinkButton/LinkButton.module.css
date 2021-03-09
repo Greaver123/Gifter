@@ -1,0 +1,14 @@
+.LinkButton {
+  color: rgb(53, 53, 255);
+  text-decoration: underline;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 5px;
+}
+
+.LinkButton:hover {
+  cursor: pointer;
+  text-decoration: underline;
+  color: gray;
+}

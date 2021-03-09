@@ -1,78 +1,14 @@
-.InputLink {
-  position: relative;
+.LinkInputWrapper {
+  border: 1px solid gray;
+  border-radius: 10px;
+  margin: 5px;
+  text-align: center;
 }
 
-.Link {
-  color: rgb(53, 53, 255);
-  text-decoration: underline;
-  margin-left: 10px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  padding: 5px;
-}
-
-.Link:hover {
-  cursor: pointer;
-  text-decoration: underline;
-  color: gray;
-}
-
-.Url {
+.LinkInput {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.EditWindow {
-  position: absolute;
-  display: flex;
-  margin: 0 5px 0 5px;
   padding: 5px;
-  border: 1px solid black;
-  border-radius: 5px;
+  border-radius: 10px;
   justify-content: space-between;
   z-index: 10;
-  width: 240px;
-}
-
-.UrlInput {
-  padding: 0;
-  border: none;
-  width: 70%;
-}
-
-.Toolbar {
-  display: flex;
-  justify-content: center;
-  margin: 0 5px 0 5px;
-  width: 50px;
-}
-
-.ToolbarBtn {
-  margin: 0 5px 0 5px;
-  border-radius: 5px;
-}
-
-.Placeholder {
-  display: flex;
-  align-items: center;
-  color: gray;
-}
-
-/* .EditLinkButton {
-  margin: 0 5px 0 5px;
-}
-
-.DeleteLinkButton {
-  margin: 0 5px 0 5px;
-}
-.SaveLinkButton {
-  margin: 0 5px 0 5px;
-} */
-.Hidden {
-  display: none;
 }
