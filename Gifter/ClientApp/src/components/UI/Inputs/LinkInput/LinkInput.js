@@ -90,14 +90,14 @@ const LinkInput = (props) => {
       ) : (
         <Link url={props.url} />
       )}
-      {props.url === null || props.url === '' ? null : (
+      {isVisibleEditWindow ? (
         <InputToobar
           editMode={isEditMode}
           onDeleteClick={deleteLink}
           onEditClick={startEditMode}
           onSaveClick={saveLink}
         />
-      )}
+      ) : null}
     </div>
   );
 
