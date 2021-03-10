@@ -4,11 +4,3 @@
   margin: 5px;
   text-align: center;
 }
-
-.LinkInput {
-  display: flex;
-  padding: 5px;
-  border-radius: 10px;
-  justify-content: space-between;
-  z-index: 10;
-}
