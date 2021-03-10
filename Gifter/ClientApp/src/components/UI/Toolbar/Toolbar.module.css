@@ -5,4 +5,14 @@
   /* max-height: 75px; */
   display: flex;
   justify-content: space-between;
+  align-items: center;
+}
+
+.ToolbarText {
+  text-align: center;
+  font-size: 26px;
+  color: black;
+  text-decoration: underline;
+  font-weight: bold;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import ImageInput from '../../../../UI/Inputs/ImageInput/ImageInput';
 import LinkInput from '../../../../UI/Inputs/LinkInput/LinkInput';
+import TextInput from '../../../../UI/Inputs/TextInput/TextInput';
 import classes from './Wish.module.css';
 
 const Wish = (props) => {
@@ -12,8 +13,7 @@ const Wish = (props) => {
         </button>
       )}
       <div className={classes.WishInputs}>
-        <input
-          type="text"
+        <TextInput
           name="name"
           placeholder="Name"
           value={props.name}
@@ -28,8 +28,7 @@ const Wish = (props) => {
           onChange={props.changed}
           disabled={props.displayOnly}
         /> */}
-        <input
-          type="text"
+        <TextInput
           name="price"
           placeholder="Price"
           value={props.price}

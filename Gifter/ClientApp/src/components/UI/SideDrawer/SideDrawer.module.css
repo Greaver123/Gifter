@@ -6,7 +6,7 @@
 .Open {
   display: flex;
   flex-direction: column;
-  position: fixed;
+  position: absolute;
   width: 100%;
   height: 100%;
   background-color: whitesmoke;
@@ -30,6 +30,13 @@
 
 .Closed {
   display: none;
+}
+
+@media screen and (max-height: 700px) {
+  .Open a {
+    height: 90px;
+    line-height: 90px;
+  }
 }
 
 @media screen and (min-width: 700px) {

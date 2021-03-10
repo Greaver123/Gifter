@@ -36,10 +36,6 @@
   width: 50%;
 }
 
-.WishInputs input[type='text'] {
-  margin: 5px;
-}
-
 .ImagePreview {
   margin: 30px 5px 10px 0px;
   border: 1px solid black;

@@ -23,6 +23,7 @@ class Toolbar extends Component {
           opened={this.state.sideDrawerOpened}
           clicked={this.SideDrawerClicked}
         />
+        <div className={classes.ToolbarText}>Gifter</div>
         <Navigation />
         {!this.props.auth0.isAuthenticated ? <LoginButton /> : <LogoutButton />}
       </div>

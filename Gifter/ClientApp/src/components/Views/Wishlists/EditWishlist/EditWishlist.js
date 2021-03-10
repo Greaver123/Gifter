@@ -81,7 +81,7 @@ class EditWishlist extends Component {
         updatedWishes.push({
           id: response.data.data.id,
           name: '',
-          link: '',
+          link: null,
           price: '',
           isNew: true,
         });
@@ -198,7 +198,7 @@ class EditWishlist extends Component {
     console.log('DELETE LINK', wishId);
     const updatedWishes = [...this.state.wishes];
     let index = updatedWishes.findIndex((w) => w.id === wishId);
-    updatedWishes[index].link = '';
+    updatedWishes[index].link = null;
     this.setState(updatedWishes);
   };
 
@@ -296,7 +296,7 @@ class EditWishlist extends Component {
       title: wishlist.title,
       wishes: wishlist.wishes?.map((w) => {
         w.name = w.name ?? '';
-        w.link = w.link ?? null;
+        w.link = w.link;
         w.price = w.price ?? '';
         w.isNew = false;
         return w;
