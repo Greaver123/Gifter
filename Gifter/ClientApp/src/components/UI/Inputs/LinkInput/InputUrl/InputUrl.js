@@ -34,6 +34,9 @@ const InputUrl = (props) => {
           placeholder="Enter URL"
           pattern="https://.*"
           name="link"
+          onFocus={(e) => {
+            e.target.select();
+          }}
           onBlur={props.onFocusOut}
           onChange={props.onChange}
           onKeyDown={keyEventsHandle}
