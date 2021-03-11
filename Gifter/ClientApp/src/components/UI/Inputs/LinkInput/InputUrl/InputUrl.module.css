@@ -1,11 +1,12 @@
-.LinkInput {
+.InputUrl {
   display: flex;
   padding: 5px;
   border-radius: 10px;
   justify-content: space-between;
   z-index: 10;
 }
-.UrlInput {
+
+.InputUrl input {
   padding: 0;
   border: none;
   width: 70%;

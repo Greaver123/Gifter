@@ -22,13 +22,11 @@ const InputUrl = (props) => {
   };
 
   return (
-    <div className={classes.LinkInput}>
+    <div className={classes.InputUrl}>
       <React.Fragment>
         <input
           ref={inputRef}
-          className={`${classes.UrlInput} ${
-            !props.editMode ? classes.Hidden : ''
-          }`}
+          className={`${!props.editMode ? classes.Hidden : ''}`}
           type="url"
           value={props.url ?? ''}
           placeholder="Enter URL"
