@@ -4,7 +4,7 @@ import classes from './Link.module.css';
 const Link = (props) => {
   return (
     <a className={classes.Link} href={props.url} target="_blank">
-      {props.url}
+      {props.url?.replace(/^((http)|(https))(:\/\/)/, '')}
     </a>
   );
 };
