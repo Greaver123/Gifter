@@ -7,6 +7,7 @@ import LinkButton from './LinkButton/LinkButton';
 const LinkInput = (props) => {
   const [isVisibleEditWindow, setIsVisibleEditWindow] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isWaitingForRespnse, setIsWaitingForResponse] = useState(false);
   const inputUrlRef = useRef(null);
   const linkInputWrapper = useRef(null);
 
@@ -28,14 +29,25 @@ const LinkInput = (props) => {
 
   const saveLink = function () {
     //TODO POOST
-    setIsEditMode(false);
-    setIsVisibleEditWindow(false);
+
+    setIsWaitingForResponse(true);
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    wait(3000).then(() => {
+      setIsWaitingForResponse(false);
+      setIsEditMode(false);
+      setIsVisibleEditWindow(false);
+    });
   };
 
   const deleteLink = function (e) {
-    props.onDeleteLink();
-    setIsEditMode(false);
-    setIsVisibleEditWindow(false);
+    setIsWaitingForResponse(true);
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    wait(3000).then(() => {
+      props.onDeleteLink();
+      setIsWaitingForResponse(false);
+      setIsEditMode(false);
+      setIsVisibleEditWindow(false);
+    });
   };
 
   const cancelEdit = function (e) {
@@ -48,7 +60,7 @@ const LinkInput = (props) => {
       {isVisibleEditWindow ? (
         <InputUrl
           url={props.url}
-          onFocusOut={cancelEdit}
+          // onFocusOut={cancelEdit}
           onChange={(e) => {
             props.onChange(e);
           }}
@@ -57,6 +69,7 @@ const LinkInput = (props) => {
           onDeleteClick={deleteLink}
           onCancel={cancelEdit}
           editMode={isEditMode}
+          isLoading={isWaitingForRespnse}
         />
       ) : (
         <LinkButton

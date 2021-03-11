@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import classes from './InputUrl.module.css';
 import InputToobar from './InputToolbar/InputToolbar';
 import Link from './Link/Link';
+import LoadingIndicator from '../../../LoadingIndicator/LoadingIndicator';
 
 const InputUrl = (props) => {
   const inputRef = useRef(null);
@@ -38,18 +39,23 @@ const InputUrl = (props) => {
           onBlur={props.onFocusOut}
           onChange={props.onChange}
           onKeyDown={keyEventsHandle}
+          disabled={props.isLoading}
         />
         {!props.editMode ? <Link url={props.url ?? 'Enter URL'} /> : null}
       </React.Fragment>
-      <InputToobar
-        editMode={props.editMode}
-        onSaveClick={props.onSaveClick}
-        onEditClick={() => {
-          props.onEditClick();
-          inputRef.current.focus();
-        }}
-        onDeleteClick={props.onDeleteClick}
-      />
+      {props.isLoading ? (
+        <LoadingIndicator style={{ margin: 'auto', fontSize: '3px' }} />
+      ) : (
+        <InputToobar
+          editMode={props.editMode}
+          onSaveClick={props.onSaveClick}
+          onEditClick={() => {
+            props.onEditClick();
+            inputRef.current.focus();
+          }}
+          onDeleteClick={props.onDeleteClick}
+        />
+      )}
     </div>
   );
 };
