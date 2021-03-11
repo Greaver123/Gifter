@@ -1,14 +1,16 @@
 .Toolbar {
   display: flex;
   justify-content: center;
-  margin: 0 5px 0 5px;
-  width: 50px;
+  align-items: center;
+  /* margin: 0 5px 0 5px; */
+  width: 30%;
 }
 
 .ToolbarBtn {
   font-weight: bold;
   margin: 0 5px 0 5px;
-  padding: 0 5px;
+  width: fit-content;
+  padding: 0 10px;
   border-radius: 5px;
   color: white;
   border: none;

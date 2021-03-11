@@ -1,15 +1,18 @@
 .InputUrl {
   display: flex;
-  padding: 5px;
+  /* padding: 5px; */
   border-radius: 10px;
   justify-content: space-between;
   z-index: 10;
+  height: 100%;
 }
 
 .InputUrl input {
-  padding: 0;
-  border: none;
+  padding: 5px;
   width: 70%;
+  background-color: transparent;
+  text-align: center;
+  border: none;
 }
 
 .Hidden {
