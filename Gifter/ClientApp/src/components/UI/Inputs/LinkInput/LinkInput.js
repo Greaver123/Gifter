@@ -17,6 +17,9 @@ const LinkInput = (props) => {
 
   const showEditWindow = function () {
     setIsVisibleEditWindow(true);
+    if (props.url === '' || props.url === null) {
+      setIsEditMode(true);
+    }
   };
 
   const startEditMode = function () {
@@ -56,7 +59,10 @@ const LinkInput = (props) => {
           editMode={isEditMode}
         />
       ) : (
-        <LinkButton url={props.url ?? 'Enter URL'} onClick={showEditWindow} />
+        <LinkButton
+          url={props.url == null || props.url == '' ? 'Enter URL' : props.url}
+          onClick={showEditWindow}
+        />
       )}
     </div>
   );
