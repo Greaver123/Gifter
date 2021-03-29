@@ -1,4 +1,6 @@
 .LinkButton {
+  position: absolute;
+  background-color: white;
   border-radius: 10px;
   color: gray;
   text-overflow: ellipsis;
@@ -19,7 +21,6 @@
   /* transform: translateX(-20%); */
 }
 
-.Clicked {
-  min-width: 70%;
-  width: 0%;
+.Hidden {
+  display: none;
 }

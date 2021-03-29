@@ -7,15 +7,27 @@
   height: 100%;
 }
 
-.InputUrl input {
+.Input {
+  border: none;
   padding: 5px;
-  width: 70%;
+  width: 100%;
   background-color: transparent;
   text-align: center;
   border: none;
+  cursor: pointer;
+  transition: width 0.5s;
+}
+
+.Input:disabled {
+  background-color: transparent !important;
 }
 
 .Hidden {
   display: none;
   /* opacity: 0; */
+}
+
+.SlideLeft {
+  width: 70%;
+  cursor: initial;
 }
