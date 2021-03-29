@@ -1,0 +1,7 @@
+.LinkInputWrapper {
+  position: relative;
+  border: 1px solid gray;
+  border-radius: 10px;
+  margin: 5px;
+  text-align: center;
+}

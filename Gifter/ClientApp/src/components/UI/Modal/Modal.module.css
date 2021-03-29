@@ -1,0 +1,38 @@
+.Modal {
+  display: block;
+  border-radius: 10px;
+  background-color: white;
+  position: fixed;
+  /* top: 0px;
+  left: 0px; */
+  z-index: 10;
+  /* margin: 5%; */
+  border: 1px solid black;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ModalContent {
+  width: 80%;
+  height: 80%;
+  border: 1px dashed black;
+  border-radius: 10px;
+  margin: auto;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.ModalContent p {
+  margin: 0;
+  padding: 10%;
+}
+
+.ButtonsWrapper {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.ButtonsWrapper button {
+  width: 150px;
+}

@@ -1,0 +1,45 @@
+.Toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* margin: 0 5px 0 5px; */
+  width: 30%;
+}
+
+.ToolbarBtn {
+  font-weight: bold;
+  margin: 0 5px 0 5px;
+  width: fit-content;
+  padding: 0 10px;
+  border-radius: 5px;
+  color: white;
+  border: none;
+  background-color: transparent;
+}
+
+.SaveLinkButton {
+  color: greenyellow;
+}
+
+.SaveLinkButton:hover {
+  color: white;
+  background-color: greenyellow;
+}
+
+.DeleteLinkButton {
+  color: red;
+}
+
+.DeleteLinkButton:hover {
+  color: white;
+  background-color: red;
+}
+
+.EditLinkButton {
+  color: orange;
+}
+
+.EditLinkButton:hover {
+  color: white;
+  background-color: orange;
+}

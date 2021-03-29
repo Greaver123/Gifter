@@ -1,0 +1,26 @@
+.LinkButton {
+  position: absolute;
+  background-color: white;
+  border-radius: 10px;
+  color: gray;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 5px;
+  transition: width 0.5s;
+  width: 100%;
+}
+
+.LinkButton:hover {
+  cursor: pointer;
+  /* text-decoration: underline; */
+  /* background-color: rgb(212, 212, 212);
+  cursor: pointer;
+  color: white;
+  border-radius: 10px; */
+  /* transform: translateX(-20%); */
+}
+
+.Hidden {
+  display: none;
+}

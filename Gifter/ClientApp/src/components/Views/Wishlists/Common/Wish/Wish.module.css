@@ -1,0 +1,49 @@
+.Wish {
+  border-radius: 10px;
+  display: flex;
+  position: relative;
+  border: 1px solid black;
+  border-style: dashed;
+  width: 100%;
+  margin: auto;
+  margin-top: 15px;
+}
+
+.DeleteButton {
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  background-color: transparent;
+  color: red;
+  font-weight: bold;
+  position: absolute;
+  border-radius: 5px;
+  right: 0px;
+  border: none;
+  width: 25px;
+  height: 25px;
+  height: fit-content;
+}
+.DeleteButton:hover {
+  color: whitesmoke;
+  background-color: red;
+}
+
+.WishInputs {
+  display: flex;
+  flex-direction: column;
+  margin: 30px 0 10px 0;
+  width: 50%;
+}
+
+.ImagePreview {
+  margin: 30px 5px 10px 0px;
+  border: 1px solid black;
+  border-radius: 10px;
+  width: 50%;
+  height: 200px;
+}
+/* .ImagePreview input {
+  margin: 5px 0 10px 5px;
+  width: 100%;
+} */

@@ -1,0 +1,12 @@
+.MenuBurger {
+  display: inline-block;
+  margin: 15px;
+  cursor: pointer;
+}
+
+.MenuBurger div {
+  width: 35px;
+  height: 5px;
+  background-color: black;
+  margin: 6px 0;
+}
