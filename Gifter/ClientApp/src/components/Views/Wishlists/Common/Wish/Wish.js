@@ -43,6 +43,7 @@ const Wish = (props) => {
       </div>
       <div className={classes.ImagePreview}>
         <ImageInput
+          isLoadingImage={props.isLoadingImage}
           displayOnly={props.displayOnly}
           uploadImage={props.uploadImage}
           deleteImage={props.deleteImage}

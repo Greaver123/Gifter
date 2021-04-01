@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 import classes from './ImageInput.module.css';
 import defaultImage from '../../../../assets/images/imagePreview256px.png';
-
+import LoadingIndicator from '../../LoadingIndicator/LoadingIndicator';
+import Overlay from './Overlay/Overlay';
 class ImageInput extends Component {
   imageInput = React.createRef();
 
   state = {
     overlay: false,
-    isUploading: false,
+    isHandlingRequest: false,
   };
 
   handleImageChange = async () => {
@@ -23,10 +24,13 @@ class ImageInput extends Component {
     this.setState({ isUploading: false });
   };
 
-  deleteImage = () => {
-    console.log(this.deleteImage);
-    if (!this.state.isUploading) {
-      this.props.deleteImage();
+  deleteImage = async () => {
+    if (this.state.isHandlingRequest) return;
+    this.setState({ isHandlingRequest: true });
+    try {
+      await this.props.deleteImage();
+    } finally {
+      this.setState({ isHandlingRequest: false });
     }
   };
 
@@ -34,17 +38,18 @@ class ImageInput extends Component {
     this.imageInput.current.click();
   };
 
-  toggleOverlay = () => {
-    this.setState((prevState) => ({
-      overlay: !prevState.overlay,
-    }));
+  hideOverlay = () => {
+    this.setState({ overlay: false });
   };
 
   showOverlay = () => {
-    this.setState({ showOverlay: true });
+    this.setState({ overlay: true });
   };
 
   render() {
+    if (this.state.isHandlingRequest || this.props.isLoadingImage)
+      return <LoadingIndicator />;
+
     let imageInput = (
       <input
         type="image"
@@ -54,27 +59,12 @@ class ImageInput extends Component {
       />
     );
 
-    let overlay = (
-      <div className={classes.Overlay}>
-        <div className={classes.OverlayButtons}>
-          <button className={classes.BtnUpload} onClick={this.selectImage}>
-            Select
-          </button>
-          {this.props.image != null ? (
-            <button className={classes.BtnDelete} onClick={this.deleteImage}>
-              Delete
-            </button>
-          ) : null}
-        </div>
-      </div>
-    );
-
     if (!this.props.displayOnly) {
       imageInput = (
         <div
           className={classes.ImageInput}
-          onMouseEnter={this.toggleOverlay}
-          onMouseLeave={this.toggleOverlay}
+          onMouseEnter={this.showOverlay}
+          onMouseLeave={this.hideOverlay}
           onClick={this.showOverlay}
         >
           <input
@@ -88,7 +78,13 @@ class ImageInput extends Component {
             src={this.props.image ? this.props.image : defaultImage}
             alt="image/photo of wish"
           ></img>
-          {this.state.overlay ? overlay : null}
+          {this.state.overlay ? (
+            <Overlay
+              image={this.props.image}
+              onSelectClick={this.selectImage}
+              onDeleteClick={this.deleteImage}
+            />
+          ) : null}
         </div>
       );
     }

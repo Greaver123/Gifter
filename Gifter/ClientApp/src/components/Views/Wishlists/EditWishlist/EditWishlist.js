@@ -8,6 +8,7 @@ import { withAuth0 } from '@auth0/auth0-react';
 import { axiosDevInstance } from '../../../../axios/axios';
 import LoadingIndicator from '../../../UI/LoadingIndicator/LoadingIndicator';
 import { apiStatusCodes } from '../../../../api/constants';
+import { cloneDeep } from 'lodash';
 
 class EditWishlist extends Component {
   state = {
@@ -25,47 +26,33 @@ class EditWishlist extends Component {
   };
 
   removeWish = async (e) => {
-    const wishId = Number(e.target.parentElement.attributes['data-id'].value);
+    const wishId = Number(e.target.parentElement.dataset.id);
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
-    axiosDevInstance
-      .delete(`wish/${wishId}`, {
+    try {
+      const response = await axiosDevInstance.delete(`wish/${wishId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
-      .then((response) => {
-        if (response.status === 200) {
-          let updatedWishes = [...this.state.wishes].filter(
-            (wish) => wish.id !== wishId
-          );
-          this.setState({ wishes: updatedWishes });
-        } else if (response.status === 404) {
-          //Show message
-        }
-      })
-      .catch((error) => console.error(error));
-  };
+      });
 
-  getLastIndex = (wishes) => {
-    if (wishes === null || wishes.length == 0) return 1;
+      let updatedWishes = cloneDeep(this.state.wishes).filter(
+        (wish) => wish.id !== wishId
+      );
 
-    let lastIndex = 0;
-    for (const wish of wishes) {
-      if (wish.id > lastIndex) {
-        lastIndex = wish.id;
-      }
+      this.setState({ wishes: updatedWishes });
+    } catch (error) {
+      alert('Could not remove Wish. Try again.');
     }
-    return lastIndex;
   };
 
   addWish = async () => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
-    axiosDevInstance
-      .post(
+    try {
+      const response = await axiosDevInstance.post(
         `wish`,
         {
           wishlistId: this.state.id,
@@ -75,30 +62,27 @@ class EditWishlist extends Component {
             Authorization: `Bearer ${token}`,
           },
         }
-      )
-      .then((response) => {
-        let updatedWishes = [...this.state.wishes];
-        updatedWishes.push({
-          id: response.data.data.id,
-          name: '',
-          link: null,
-          price: '',
-          isNew: true,
-        });
-        this.setState({ wishes: updatedWishes });
-      })
-      .catch((error) => {
-        console.error(error);
-        //TODO Show message
+      );
+
+      let updatedWishes = cloneDeep(this.state.wishes);
+      updatedWishes.push({
+        id: response.data.data.id,
+        name: '',
+        link: null,
+        price: '',
+        isNew: true,
       });
+
+      this.setState({ wishes: updatedWishes });
+    } catch (error) {
+      alert('Could not add Wish. Please try again.');
+    }
   };
 
   onInputChange = (e) => {
-    console.log(e.target.value);
-    console.log(e.target.name);
     let value = e.target.value;
     const wishId = Number(e.target.closest('div[data-id]').dataset.id);
-    let updatedWishes = [...this.state.wishes];
+    let updatedWishes = cloneDeep(this.state.wishes);
     const found = updatedWishes.find((wish) => wish.id === wishId);
     found[e.target.name] = value;
     this.setState({ wishes: updatedWishes });
@@ -129,8 +113,6 @@ class EditWishlist extends Component {
     formData.append('ImageFile', image);
     formData.append('wishId', wishId);
 
-    let result = false;
-
     try {
       const response = await axiosDevInstance.post('/image/upload', formData, {
         headers: {
@@ -142,7 +124,7 @@ class EditWishlist extends Component {
         alert(response.data.data.message);
       }
 
-      const wishes = [...this.state.wishes];
+      const wishes = cloneDeep(this.state.wishes);
       const wishToUpdateId = wishes.findIndex((w) => w.id === wishId);
 
       wishes[wishToUpdateId].imageId = response.data.data.id;
@@ -150,12 +132,9 @@ class EditWishlist extends Component {
       this.setState({
         wishes: wishes,
       });
-
-      result = true;
     } catch (error) {
+      console.error(error.message);
       alert(error);
-    } finally {
-      return result;
     }
   };
 
@@ -167,36 +146,39 @@ class EditWishlist extends Component {
         },
       });
 
-      if (response.data.status !== apiStatusCodes.SUCCESS) {
-        alert('Something went wrong retriving images');
-        return;
-      }
-
       return response.data.data.image;
     } catch (error) {
-      alert(error);
+      console.error(error.message);
+      alert('Could not fetch image.');
     }
   };
 
   fetchImages = async () => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
+    const wishesUpdate = cloneDeep(this.state.wishes);
 
-    const wishesUpdate = [...this.state.wishes];
+    wishesUpdate.map(async (wish) => {
+      if (wish.imageId !== null) {
+        let wishesUpdateLoading = cloneDeep(this.state.wishes);
+        const wishIndex = wishesUpdateLoading.findIndex(
+          (w) => w.id === wish.id
+        );
 
-    await Promise.all(
-      wishesUpdate.map(async (wish) => {
-        if (wish.imageId !== null)
-          wish.image = await this.fetchImage(token, wish.imageId);
-      })
-    );
+        wishesUpdateLoading[wishIndex].isLoadingImage = true;
+        this.setState({ wishes: wishesUpdateLoading });
+        const image = await this.fetchImage(token, wish.imageId);
 
-    this.setState({ wishes: wishesUpdate });
+        wishesUpdateLoading = cloneDeep(this.state.wishes);
+        wishesUpdateLoading[wishIndex].isLoadingImage = false;
+        wishesUpdateLoading[wishIndex].image = image;
+        this.setState({ wishes: wishesUpdateLoading });
+      }
+    });
   };
 
   deleteLink = async (wishId) => {
-    console.log('DELETE LINK', wishId);
-    const updatedWishes = [...this.state.wishes];
+    const updatedWishes = cloneDeep(this.state.wishes);
     let index = updatedWishes.findIndex((w) => w.id === wishId);
     updatedWishes[index].link = null;
     this.setState(updatedWishes);
@@ -215,49 +197,20 @@ class EditWishlist extends Component {
         },
       });
 
-      if (!apiStatusCodes.SUCCESS) alert('Something went wrong');
+      if (response.status != 200) alert(response.data.data.message);
 
       wishlist = response.data.data;
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      alert('Could not fetch wishlist. Please try again.');
     } finally {
       return wishlist;
     }
   };
 
-  saveWishlist = async () => {
-    this.props.history.push({ pathname: `/wishlists` });
-    const { getAccessTokenSilently } = this.props.auth0;
-    const token = await getAccessTokenSilently();
-
-    axiosDevInstance
-      .put(
-        `/wishlist/${this.state.id}`,
-        {
-          id: this.state.id,
-          title: this.state.title,
-          wishes: this.state.wishes,
-          giftgroupid: this.state.selectedGiftGroupId,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
-      .then((reponse) => {
-        console.log(reponse);
-      })
-      .catch((error) => {
-        console.log('Could not save wishlist.', error);
-      });
-  };
-
   deleteImage = async (imageId) => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
-
-    let isSuccess = false;
 
     try {
       let response = await axiosDevInstance.delete(`/image/${imageId}`, {
@@ -266,30 +219,45 @@ class EditWishlist extends Component {
         },
       });
 
-      if (response.data.status === apiStatusCodes.SUCCESS) {
-        const updatedWishes = [...this.state.wishes];
-        const imageToDeleteId = updatedWishes.findIndex(
-          (w) => w.imageId == imageId
-        );
+      const updatedWishes = cloneDeep(this.state.wishes);
+      const imageToDeleteId = updatedWishes.findIndex(
+        (w) => w.imageId === imageId
+      );
 
-        updatedWishes[imageToDeleteId].image = null;
-        this.setState({ wishes: updatedWishes });
-        isSuccess = true;
-      }
+      updatedWishes[imageToDeleteId].image = null;
+      this.setState({ wishes: updatedWishes });
     } catch (error) {
-      alert('Something went wrong.');
-    } finally {
-      return isSuccess;
+      console.error(error.message);
+      alert('Could not delete Image. Please try again.');
     }
   };
 
+  getWishes = () => {
+    return this.state.wishes.map((wish) => {
+      return (
+        <Wish
+          key={wish.id}
+          id={wish.id}
+          clicked={this.removeWish}
+          name={wish.name}
+          link={wish.link}
+          price={wish.price}
+          image={wish.image}
+          isLoadingImage={wish?.isLoadingImage ?? false}
+          changed={this.onInputChange}
+          uploadImage={this.uploadImage}
+          deleteImage={this.deleteImage.bind(this, wish.imageId)}
+          onDeleteLink={this.deleteLink.bind(this, wish.id)}
+        />
+      );
+    });
+  };
+
   async componentDidMount() {
-    console.log('[EditWishlist] COMPONENT_DID_MOUNT');
     this.setState({ loading: true });
 
     let wishlist = await this.fetchWishlist(this.state.id);
-
-    if (!wishlist) alert('Could not fetch Wishlist');
+    if (!wishlist) return;
 
     this.setState({
       loading: false,
@@ -307,27 +275,9 @@ class EditWishlist extends Component {
   }
 
   render() {
-    console.log('[EditWishlist] RENDER');
-    let wishes = this.state.wishes.map((wish, index) => {
-      return (
-        <Wish
-          key={wish.id}
-          id={wish.id}
-          clicked={this.removeWish}
-          name={wish.name}
-          link={wish.link}
-          price={wish.price}
-          image={wish.image}
-          changed={this.onInputChange}
-          uploadImage={this.uploadImage}
-          deleteImage={this.deleteImage.bind(this, wish.imageId)}
-          onDeleteLink={this.deleteLink.bind(this, wish.id)}
-        />
-      );
-    });
-
+    let wishes = this.getWishes();
     let editWishlistView = this.state.loading ? (
-      <LoadingIndicator />
+      ''
     ) : (
       <React.Fragment>
         <h3>{this.state.title}</h3>
@@ -346,10 +296,7 @@ class EditWishlist extends Component {
           </Button>
           <div>
             <Button type="Cancel" clicked={this.cancelWishlist}>
-              Cancel
-            </Button>
-            <Button type="Save" clicked={this.saveWishlist}>
-              Save
+              Back
             </Button>
           </div>
           <Modal
