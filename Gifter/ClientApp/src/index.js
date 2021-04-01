@@ -5,21 +5,16 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import registerServiceWorker from './registerServiceWorker';
 import { Auth0Provider } from '@auth0/auth0-react';
+import Auth0ProviderWithHistory from './auth/Auth0ProviderWithHistory/Auth0ProviderWithHistory';
 
 const baseUrl = document.getElementsByTagName('base')[0].getAttribute('href');
 const rootElement = document.getElementById('root');
 
 ReactDOM.render(
   <BrowserRouter basename={baseUrl}>
-    <Auth0Provider
-      domain="giftter-dev.eu.auth0.com"
-      clientId="aOyDaNo4il105Kub3qqUys8bGyvydAQQ"
-      audience="https://giftter-dev.com"
-      redirectUri={window.location.origin}
-      //scope
-    >
+    <Auth0ProviderWithHistory>
       <App />
-    </Auth0Provider>
+    </Auth0ProviderWithHistory>
   </BrowserRouter>,
   rootElement
 );

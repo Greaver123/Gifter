@@ -7,7 +7,7 @@ import EditWishlist from './EditWishlist/EditWishlist';
 import Button from '../../UI/Button/Button';
 import WishlistElement from './WishlistElement/WishListElement';
 import Modal from '../../UI/Modal/Modal';
-import { withAuth0 } from '@auth0/auth0-react';
+import { withAuth0, withAuthenticationRequired } from '@auth0/auth0-react';
 import { axiosDevInstance } from '../../../axios/axios';
 import LoadingIndicator from '../../UI/LoadingIndicator/LoadingIndicator';
 
