@@ -3,13 +3,16 @@ import ImageInput from '../../../../UI/Inputs/ImageInput/ImageInput';
 import LinkInput from '../../../../UI/Inputs/LinkInput/LinkInput';
 import TextInput from '../../../../UI/Inputs/TextInput/TextInput';
 import classes from './Wish.module.css';
+import { CloseOutline } from 'react-ionicons';
+
 const Wish = (props) => {
   return (
     <div className={classes.Wish} data-id={props.id}>
       {props.displayOnly ? null : (
-        <button className={classes.DeleteButton} onClick={props.clicked}>
-          X
-        </button>
+        <CloseOutline
+          onClick={props.clicked}
+          cssClasses={classes.WishDeleteBtn}
+        />
       )}
       <div className={classes.WishInputs}>
         <TextInput
@@ -19,14 +22,6 @@ const Wish = (props) => {
           onChange={props.changed}
           disabled={props.displayOnly}
         />
-        {/* <input
-          type="url"
-          name="link"
-          placeholder="Link"
-          value={props.link}
-          onChange={props.changed}
-          disabled={props.displayOnly}
-        /> */}
         <TextInput
           name="price"
           placeholder="Price"

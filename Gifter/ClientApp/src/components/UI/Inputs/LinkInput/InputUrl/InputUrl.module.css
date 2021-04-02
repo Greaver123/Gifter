@@ -17,6 +17,9 @@
   cursor: pointer;
   transition: width 0.5s;
 }
+.Input::placeholder {
+  color: rgb(173, 173, 173);
+}
 
 .Input:disabled {
   background-color: transparent !important;

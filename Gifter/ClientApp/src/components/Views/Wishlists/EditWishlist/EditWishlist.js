@@ -25,8 +25,7 @@ class EditWishlist extends Component {
     loading: false,
   };
 
-  removeWish = async (e) => {
-    const wishId = Number(e.target.parentElement.dataset.id);
+  removeWish = async (wishId) => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
@@ -238,7 +237,7 @@ class EditWishlist extends Component {
         <Wish
           key={wish.id}
           id={wish.id}
-          clicked={this.removeWish}
+          clicked={this.removeWish.bind(this, wish.id)}
           name={wish.name}
           link={wish.link}
           price={wish.price}
