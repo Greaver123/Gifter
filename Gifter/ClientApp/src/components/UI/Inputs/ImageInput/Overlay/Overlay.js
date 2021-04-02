@@ -1,19 +1,21 @@
 import React from 'react';
 import classes from './Overlay.module.css';
-
+import { CloudUploadOutline, CloseOutline } from 'react-ionicons';
 const Overlay = (props) => {
   return (
     <div className={classes.Overlay}>
-      <div className={classes.OverlayButtons}>
-        <button className={classes.BtnUpload} onClick={props.onSelectClick}>
-          Select
-        </button>
-        {props.image != null ? (
-          <button className={classes.BtnDelete} onClick={props.onDeleteClick}>
-            Delete
-          </button>
-        ) : null}
-      </div>
+      <CloudUploadOutline
+        onClick={props.onSelectClick}
+        cssClasses={[classes.Icon, classes.UploadIcon].join(' ')}
+        title="Upload image"
+      />
+      {props.image != null ? (
+        <CloseOutline
+          onClick={props.onDeleteClick}
+          cssClasses={[classes.Icon, classes.DeleteIcon].join(' ')}
+          title="Delete image"
+        />
+      ) : null}
     </div>
   );
 };

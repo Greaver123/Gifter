@@ -3,7 +3,6 @@ import ImageInput from '../../../../UI/Inputs/ImageInput/ImageInput';
 import LinkInput from '../../../../UI/Inputs/LinkInput/LinkInput';
 import TextInput from '../../../../UI/Inputs/TextInput/TextInput';
 import classes from './Wish.module.css';
-
 const Wish = (props) => {
   return (
     <div className={classes.Wish} data-id={props.id}>

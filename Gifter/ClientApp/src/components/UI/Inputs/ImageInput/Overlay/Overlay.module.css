@@ -1,4 +1,5 @@
 .Overlay {
+  opacity: 0;
   position: absolute;
   width: 100%;
   height: 100%;
@@ -6,31 +7,23 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.75);
+  background-color: rgba(255, 255, 255, 0.8);
   z-index: 10;
+  transition: opacity 0.5s;
 }
 
-.OverlayButtons {
-  display: flex;
-  justify-content: space-between;
+.Overlay:hover {
+  opacity: 1;
 }
 
-.OverlayButtons button {
-  border: none;
-  border-radius: 5px;
-  color: white;
-  font-weight: bold;
-  margin: 10px;
+.Icon {
+  margin: 0 15px;
+  color: rgb(116, 116, 116) !important;
+  width: 48px !important;
+  height: 48px !important;
+  transition: color 0.5s;
 }
 
-.Visible {
-  display: flex;
-}
-
-.BtnDelete {
-  background-color: red;
-}
-
-.BtnUpload {
-  background-color: gray;
+.Icon:hover {
+  color: rgb(40, 40, 40) !important;
 }

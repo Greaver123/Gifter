@@ -38,7 +38,7 @@
 
 .ImagePreview {
   margin: 30px 5px 10px 0px;
-  border: 1px solid black;
+  padding: 10px;
   border-radius: 10px;
   width: 50%;
   height: 200px;
@@ -46,7 +46,3 @@
   justify-content: center;
   align-items: center;
 }
-/* .ImagePreview input {
-  margin: 5px 0 10px 5px;
-  width: 100%;
-} */
