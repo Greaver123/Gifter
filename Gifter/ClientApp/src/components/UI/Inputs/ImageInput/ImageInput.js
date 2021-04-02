@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import classes from './ImageInput.module.css';
 import defaultImage from '../../../../assets/images/imagePreview256px.png';
-import LoadingIndicator from '../../LoadingIndicator/LoadingIndicator';
 import Overlay from './Overlay/Overlay';
+import Spinner from './Spinner/Spinner';
+
 class ImageInput extends Component {
   imageInput = React.createRef();
 
@@ -12,7 +13,7 @@ class ImageInput extends Component {
   };
 
   handleImageChange = async () => {
-    this.setState({ isUploading: true });
+    this.setState({ isHandlingRequest: true });
 
     if (this.imageInput.current.files.length === 0) return;
     const selectedImage = this.imageInput.current.files[0];
@@ -21,7 +22,7 @@ class ImageInput extends Component {
 
     await this.props.uploadImage(this.props.wishId, selectedImage);
 
-    this.setState({ isUploading: false });
+    this.setState({ isHandlingRequest: false });
   };
 
   deleteImage = async () => {
@@ -48,7 +49,7 @@ class ImageInput extends Component {
 
   render() {
     if (this.state.isHandlingRequest || this.props.isLoadingImage)
-      return <LoadingIndicator />;
+      return <Spinner />;
 
     let imageInput = (
       <input

@@ -42,6 +42,9 @@
   border-radius: 10px;
   width: 50%;
   height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 /* .ImagePreview input {
   margin: 5px 0 10px 5px;
