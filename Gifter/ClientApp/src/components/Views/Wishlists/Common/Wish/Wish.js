@@ -10,7 +10,7 @@ const Wish = (props) => {
     <div className={classes.Wish} data-id={props.id}>
       {props.displayOnly ? null : (
         <CloseOutline
-          onClick={props.clicked}
+          onClick={props.deleteWish}
           cssClasses={classes.WishDeleteBtn}
         />
       )}

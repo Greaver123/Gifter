@@ -25,7 +25,7 @@ class EditWishlist extends Component {
     loading: false,
   };
 
-  removeWish = async (wishId) => {
+  deleteWish = async (wishId) => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
 
@@ -236,13 +236,9 @@ class EditWishlist extends Component {
       return (
         <Wish
           key={wish.id}
-          id={wish.id}
-          clicked={this.removeWish.bind(this, wish.id)}
-          name={wish.name}
-          link={wish.link}
-          price={wish.price}
-          image={wish.image}
-          isLoadingImage={wish?.isLoadingImage ?? false}
+          {...wish}
+          deleteWish={this.deleteWish.bind(this, wish.id)}
+          // isLoadingImage={wish?.isLoadingImage ?? false}
           changed={this.onInputChange}
           uploadImage={this.uploadImage}
           deleteImage={this.deleteImage.bind(this, wish.imageId)}
