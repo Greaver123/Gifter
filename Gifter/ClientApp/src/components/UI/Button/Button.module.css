@@ -2,17 +2,20 @@
   margin: 10px;
   padding: 10px 15px;
   border-radius: 10px;
-  font-weight: bold;
   color: white;
   border: none;
   height: 50px;
 }
 
 .Delete {
-  background-color: red;
+  color: rgb(255, 92, 92);
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 0px 5px rgb(255, 92, 92);
+  transition: background-color, color, box-shadow, 0.5s;
 }
 .Delete:hover {
-  background-color: rgba(255, 0, 0, 0.7);
+  box-shadow: 0px 0px 10px rgb(240, 29, 29);
 }
 
 .Save {
@@ -25,24 +28,36 @@
 
 .Cancel,
 .No {
-  background-color: rgb(187, 187, 187);
+  color: rgb(204, 204, 204);
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0px 0px 5px rgb(204, 204, 204);
+  transition: background-color, color, box-shadow, 0.5s;
 }
 
 .Cancel:hover,
 .No:hover {
-  background-color: rgb(187, 187, 187, 0.7);
+  box-shadow: 0px 0px 10px rgb(158, 158, 158);
 }
 
 .Add,
 .Yes,
 .Edit {
-  background-color: orange;
+  color: rgb(204, 204, 204);
+  background-color: white;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0px 0px 5px rgb(204, 204, 204);
+  transition: background-color, color, box-shadow, 0.5s;
 }
 
 .Add:hover,
 .Edit:hover,
 .Yes:hover {
-  background-color: rgba(255, 166, 0, 0.7);
+  /* background-color: #ccc;
+  color: white; */
+  box-shadow: 0px 0px 10px rgb(158, 158, 158);
 }
 
 .View {

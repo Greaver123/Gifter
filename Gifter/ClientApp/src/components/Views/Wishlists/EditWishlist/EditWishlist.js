@@ -291,7 +291,7 @@ class EditWishlist extends Component {
           </Button>
         </div>
         <div className={classes.GiftGroup}>
-          <Dropdown items={this.state.giftGroups} />
+          {/* <Dropdown items={this.state.giftGroups} /> */}
         </div>
         <div className={classes.Buttons}>
           <Button type="Delete" clicked={this.showDeleteWishlistModal}>
