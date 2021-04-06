@@ -8,7 +8,7 @@ import { withAuth0 } from '@auth0/auth0-react';
 import { axiosDevInstance } from '../../../../axios/axios';
 import LoadingIndicator from '../../../UI/LoadingIndicator/LoadingIndicator';
 import { apiStatusCodes } from '../../../../api/constants';
-import { cloneDeep, random } from 'lodash';
+import { cloneDeep } from 'lodash';
 
 class EditWishlist extends Component {
   state = {
@@ -22,7 +22,8 @@ class EditWishlist extends Component {
     ],
     selectedGiftGroupId: -1,
     showDeleteModal: false,
-    loading: false,
+    isFetchingWishlist: false,
+    isAddingWish: false,
   };
 
   deleteWish = async (wishId) => {
@@ -49,7 +50,7 @@ class EditWishlist extends Component {
   addWish = async () => {
     const { getAccessTokenSilently } = this.props.auth0;
     const token = await getAccessTokenSilently();
-
+    this.setState({ isAddingWish: true });
     try {
       const response = await axiosDevInstance.post(
         `wish`,
@@ -75,6 +76,8 @@ class EditWishlist extends Component {
       this.setState({ wishes: updatedWishes });
     } catch (error) {
       alert('Could not add Wish. Please try again.');
+    } finally {
+      this.setState({ isAddingWish: false });
     }
   };
 
@@ -257,13 +260,13 @@ class EditWishlist extends Component {
   };
 
   async componentDidMount() {
-    this.setState({ loading: true });
+    this.setState({ isFetchingWishlist: true });
 
     let wishlist = await this.fetchWishlist(this.state.id);
     if (!wishlist) return;
 
     this.setState({
-      loading: false,
+      isFetchingWishlist: false,
       title: wishlist.title,
       wishes: wishlist.wishes?.map((w) => {
         w.name = w.name ?? '';
@@ -279,14 +282,18 @@ class EditWishlist extends Component {
 
   render() {
     let wishes = this.getWishes();
-    let editWishlistView = this.state.loading ? (
+    let editWishlistView = this.state.isFetchingWishlist ? (
       ''
     ) : (
       <React.Fragment>
         <h3>{this.state.title}</h3>
         {wishes}
         <div className={classes.AddWishWrapper}>
-          <Button type="Add" clicked={this.addWish}>
+          <Button
+            type="Add"
+            clicked={this.addWish}
+            showSpinner={this.state.isAddingWish}
+          >
             Add
           </Button>
         </div>

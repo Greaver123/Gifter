@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import classes from './ImageInput.module.css';
 import defaultImage from '../../../../assets/images/imagePreview256px.png';
 import Overlay from './Overlay/Overlay';
-import Spinner from './Spinner/Spinner';
+import Spinner from '../../Spinner/Spinner';
 
 class ImageInput extends Component {
   imageInput = React.createRef();

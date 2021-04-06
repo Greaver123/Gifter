@@ -15,7 +15,6 @@ const WishlistElement = (props) => {
   ) : null;
   return (
     <div className={classes.WishlistElement}>
-      {/* <div className={classes.Title}>{props.title}</div> */}
       <Button type="View" clicked={props.viewClicked}>
         {props.title}
       </Button>
