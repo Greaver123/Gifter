@@ -8,7 +8,7 @@ import { withAuth0 } from '@auth0/auth0-react';
 import { axiosDevInstance } from '../../../../axios/axios';
 import LoadingIndicator from '../../../UI/LoadingIndicator/LoadingIndicator';
 import { apiStatusCodes } from '../../../../api/constants';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, random } from 'lodash';
 
 class EditWishlist extends Component {
   state = {
@@ -131,24 +131,31 @@ class EditWishlist extends Component {
       this.setState({
         wishes: wishes,
       });
+      return image;
     } catch (error) {
       console.error(error.message);
       alert(error);
+      throw error;
     }
   };
 
-  fetchImage = async (token, imageId) => {
+  fetchImage = async (imageId) => {
     try {
+      const { getAccessTokenSilently } = this.props.auth0;
+      const token = await getAccessTokenSilently();
+
       let response = await axiosDevInstance.get(`/image/${imageId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      // if (random(1, 2) == 1) throw new Error('Error fetching image');
       return response.data.data.image;
     } catch (error) {
       console.error(error.message);
       alert('Could not fetch image.');
+      throw error;
     }
   };
 
@@ -174,6 +181,31 @@ class EditWishlist extends Component {
         this.setState({ wishes: wishesUpdateLoading });
       }
     });
+  };
+
+  deleteImage = async (imageId) => {
+    const { getAccessTokenSilently } = this.props.auth0;
+    const token = await getAccessTokenSilently();
+
+    try {
+      let response = await axiosDevInstance.delete(`/image/${imageId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const updatedWishes = cloneDeep(this.state.wishes);
+      const imageToDeleteId = updatedWishes.findIndex(
+        (w) => w.imageId === imageId
+      );
+
+      updatedWishes[imageToDeleteId].image = null;
+      this.setState({ wishes: updatedWishes });
+    } catch (error) {
+      console.error(error.message);
+      alert('Could not delete Image. Please try again.');
+      throw error;
+    }
   };
 
   deleteLink = async (wishId) => {
@@ -207,30 +239,6 @@ class EditWishlist extends Component {
     }
   };
 
-  deleteImage = async (imageId) => {
-    const { getAccessTokenSilently } = this.props.auth0;
-    const token = await getAccessTokenSilently();
-
-    try {
-      let response = await axiosDevInstance.delete(`/image/${imageId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const updatedWishes = cloneDeep(this.state.wishes);
-      const imageToDeleteId = updatedWishes.findIndex(
-        (w) => w.imageId === imageId
-      );
-
-      updatedWishes[imageToDeleteId].image = null;
-      this.setState({ wishes: updatedWishes });
-    } catch (error) {
-      console.error(error.message);
-      alert('Could not delete Image. Please try again.');
-    }
-  };
-
   getWishes = () => {
     return this.state.wishes.map((wish) => {
       return (
@@ -238,8 +246,8 @@ class EditWishlist extends Component {
           key={wish.id}
           {...wish}
           deleteWish={this.deleteWish.bind(this, wish.id)}
-          // isLoadingImage={wish?.isLoadingImage ?? false}
           changed={this.onInputChange}
+          fetchImage={this.fetchImage.bind(this, wish.imageId)}
           uploadImage={this.uploadImage}
           deleteImage={this.deleteImage.bind(this, wish.imageId)}
           onDeleteLink={this.deleteLink.bind(this, wish.id)}
@@ -266,7 +274,7 @@ class EditWishlist extends Component {
       }),
     });
 
-    await this.fetchImages();
+    // await this.fetchImages();
   }
 
   render() {

@@ -37,11 +37,11 @@ const Wish = (props) => {
       </div>
       <div className={classes.ImagePreview}>
         <ImageInput
-          isLoadingImage={props.isLoadingImage}
           displayOnly={props.displayOnly}
+          fetchImage={props.fetchImage}
           uploadImage={props.uploadImage}
           deleteImage={props.deleteImage}
-          image={props.image}
+          imageId={props.imageId}
           wishId={props.id}
         />
       </div>

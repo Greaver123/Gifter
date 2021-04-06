@@ -16,6 +16,10 @@
   opacity: 1;
 }
 
+.Visible {
+  opacity: 1;
+}
+
 .Icon {
   margin: 0 15px;
   color: rgb(116, 116, 116) !important;

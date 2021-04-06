@@ -1,9 +1,11 @@
 import React from 'react';
 import classes from './Overlay.module.css';
 import { CloudUploadOutline, CloseOutline } from 'react-ionicons';
+import { SyncOutline } from 'react-ionicons';
+
 const Overlay = (props) => {
-  return (
-    <div className={classes.Overlay}>
+  let buttons = !props.fetchError ? (
+    <React.Fragment>
       <CloudUploadOutline
         onClick={props.onSelectClick}
         cssClasses={[classes.Icon, classes.UploadIcon].join(' ')}
@@ -16,6 +18,23 @@ const Overlay = (props) => {
           title="Delete image"
         />
       ) : null}
+    </React.Fragment>
+  ) : (
+    <SyncOutline
+      cssClasses={[classes.Icon].join(' ')}
+      onClick={props.onRefreshClick}
+      title="Refresh"
+    />
+  );
+
+  return (
+    <div
+      className={[
+        classes.Overlay,
+        props.isVisible || props.fetchError ? classes.Visible : '',
+      ].join(' ')}
+    >
+      {buttons}
     </div>
   );
 };

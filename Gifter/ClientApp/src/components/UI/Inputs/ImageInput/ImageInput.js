@@ -10,19 +10,44 @@ class ImageInput extends Component {
   state = {
     overlay: false,
     isHandlingRequest: false,
+    fileMaxSize: this.props.fileMaxSize ?? 2000000, //2MB
+    image: null,
+    fetchError: false,
+    // validate: {
+    //   isValid: true,
+    //   fileMaxSize: 20000000,
+    //   acceptedFormat: ['Gif', 'jpg', 'jpeg', 'png'],
+    // },
   };
 
   handleImageChange = async () => {
     this.setState({ isHandlingRequest: true });
-
     if (this.imageInput.current.files.length === 0) return;
     const selectedImage = this.imageInput.current.files[0];
+    if (this.imageInput.current.files[0].size > this.state.fileMaxSize) {
+      alert(
+        `File too big: ${(
+          this.imageInput.current.files[0].size / 1000000
+        ).toFixed(2)} MB`
+      );
+      this.setState({ isHandlingRequest: false });
+      this.imageInput.current.value = null;
+      return;
+    }
 
-    if (!this.props?.uploadImage) return;
-
-    await this.props.uploadImage(this.props.wishId, selectedImage);
-
-    this.setState({ isHandlingRequest: false });
+    try {
+      await this.props.uploadImage(this.props.wishId, selectedImage);
+      this.setState({
+        isHandlingRequest: false,
+        image: URL.createObjectURL(selectedImage),
+      });
+    } catch (err) {
+    } finally {
+      this.setState({
+        isHandlingRequest: false,
+        overlay: false,
+      });
+    }
   };
 
   deleteImage = async () => {
@@ -30,13 +55,28 @@ class ImageInput extends Component {
     this.setState({ isHandlingRequest: true });
     try {
       await this.props.deleteImage();
+      this.setState({ image: null });
+    } catch (err) {
     } finally {
-      this.setState({ isHandlingRequest: false });
+      this.setState({ isHandlingRequest: false, overlay: false });
     }
   };
 
   selectImage = () => {
     this.imageInput.current.click();
+  };
+
+  fetchImage = async () => {
+    try {
+      if (!this.props.imageId) return;
+      this.setState({ isHandlingRequest: true });
+      let image = await this.props.fetchImage();
+      this.setState({ image: image, fetchError: false, overlay: false });
+    } catch (err) {
+      this.setState({ fetchError: true });
+    } finally {
+      this.setState({ isHandlingRequest: false });
+    }
   };
 
   hideOverlay = () => {
@@ -47,9 +87,12 @@ class ImageInput extends Component {
     this.setState({ overlay: true });
   };
 
+  async componentDidMount() {
+    this.fetchImage();
+  }
+
   render() {
-    if (this.state.isHandlingRequest || this.props.isLoadingImage)
-      return <Spinner />;
+    if (this.state.isHandlingRequest) return <Spinner />;
 
     let imageInput = (
       <input
@@ -76,16 +119,17 @@ class ImageInput extends Component {
           />
           <img
             type="image"
-            src={this.props.image ? this.props.image : defaultImage}
+            src={this.state.image ? this.state.image : defaultImage}
             alt="image/photo of wish"
           ></img>
-          {this.state.overlay ? (
-            <Overlay
-              image={this.props.image}
-              onSelectClick={this.selectImage}
-              onDeleteClick={this.deleteImage}
-            />
-          ) : null}
+          <Overlay
+            isVisible={this.state.overlay}
+            fetchError={this.state.fetchError}
+            image={this.state.image}
+            onSelectClick={this.selectImage}
+            onDeleteClick={this.deleteImage}
+            onRefreshClick={this.fetchImage}
+          />
         </div>
       );
     }
