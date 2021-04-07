@@ -1,6 +1,4 @@
-.Wishlists > button {
-  display: block;
-  width: 250px;
-  margin: auto;
-  margin-top: 50px;
+.CreateWishlistBtn {
+  width: 200px;
+  margin: 50px auto 10px auto !important;
 }

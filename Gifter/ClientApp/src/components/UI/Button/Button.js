@@ -3,9 +3,12 @@ import Spinner from '../Spinner/Spinner';
 import classes from './Button.module.css';
 
 const Button = (props) => {
+  let cssClasses = [classes.Button, classes[props.type]];
+  if (props.className) cssClasses.push(props.className);
+
   return (
     <button
-      className={[classes.Button, classes[props.type]].join(' ')}
+      className={cssClasses.join(' ')}
       onClick={() => {
         if (props.showSpinner) return;
         props.clicked();
