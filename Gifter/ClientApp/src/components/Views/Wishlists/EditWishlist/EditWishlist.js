@@ -242,12 +242,30 @@ class EditWishlist extends Component {
     }
   };
 
+  saveWish = async (id) => {
+    console.log('SAVE WISH');
+    try {
+      let wish = this.state.wishes.find((w) => w.id === id);
+      if (!wish) return;
+      console.log(wish);
+      let response = await axiosDevInstance.put('wish/', {
+        wishlistId: this.state.id,
+        name: wish.name,
+      });
+
+      return response;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   getWishes = () => {
     return this.state.wishes.map((wish) => {
       return (
         <Wish
           key={wish.id}
           {...wish}
+          saveWish={this.saveWish.bind(this, wish.id)}
           deleteWish={this.deleteWish.bind(this, wish.id)}
           changed={this.onInputChange}
           fetchImage={this.fetchImage.bind(this, wish.imageId)}

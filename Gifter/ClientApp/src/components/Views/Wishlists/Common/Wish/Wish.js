@@ -21,6 +21,7 @@ const Wish = (props) => {
           value={props.name}
           onChange={props.changed}
           disabled={props.displayOnly}
+          onSaveClick={props.saveWish}
         />
         <TextInput
           name="price"
@@ -28,6 +29,7 @@ const Wish = (props) => {
           value={props.price}
           onChange={props.changed}
           disabled={props.displayOnly}
+          onSaveClick={props.saveWish}
         />
         <LinkInput
           url={props.link}
