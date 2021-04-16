@@ -6,6 +6,7 @@ using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Helpers;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -143,6 +144,59 @@ namespace Gifter.Services.Services
                 Status = OperationStatus.FAIL,
                 Message = $"{nameof(Wish)} with id = {id} not found.",
                 Data = null
+            };
+        }
+
+        public async Task<OperationResult<WishDTO>> UpdateAsync(WishDTO wishDTO, string userId)
+        {
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+            
+            var wish = await dbContext.Wishes
+                .Include(w => w.WishList)
+                .ThenInclude(wl => wl.User)
+                .FirstOrDefaultAsync(w => w.Id == wishDTO.Id && w.WishList.User.Auth0Id == userId);
+            
+            if(wish == null) return new OperationResult<WishDTO>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = $"{nameof(Wish)} with id = {wishDTO.Id} not found.",
+                Data = null
+            };
+
+            wish.Name = wishDTO.Name;
+            wish.Price = wishDTO.Price;
+            wish.URL = wishDTO.Link;
+
+            try
+            {
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
+                {
+                    return new OperationResult<WishDTO>()
+                    {
+                        Status = OperationStatus.ERROR,
+                        Message = MessageHelper.CreateOperationErrorMessage(nameof(Wish), OperationType.delete),
+                        Data = null
+                    };
+                }
+
+                throw;
+            }
+
+            return new OperationResult<WishDTO>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Data = new WishDTO()
+                {
+                    Id = wish.Id,
+                    Name = wish.Name,
+                    Link = wish.URL,
+                    Price = wish.Price,
+                    ImageId = wish.Image?.Id
+                },
             };
         }
     }

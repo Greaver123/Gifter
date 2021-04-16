@@ -57,7 +57,7 @@ namespace Gifter.Services.Tests
             var fileName = "fdsfsdvcxs.png";
             var wishlistDirName = "avavreghv";
             var fullFilePath = $"{UserDirectory}\\{wishlistDirName}\\{fileName}";
-           
+
             Directory.CreateDirectory($"{UserDirectory}\\{wishlistDirName}");
             File.Copy($"{ImageSrcPath}\\image.png", fullFilePath);
 
@@ -71,8 +71,8 @@ namespace Gifter.Services.Tests
                         Name = "Wish 1",
                         Price = 12345,
                         URL = "www.wish1.com",
-                    Image = new Image(){ 
-                        FileName = fileName}, 
+                    Image = new Image(){
+                        FileName = fileName},
                     }
             }
             });
@@ -90,7 +90,6 @@ namespace Gifter.Services.Tests
             //Cleanup 
             Directory.Delete($"{UserDirectory}\\{wishlistDirName}");
         }
-
 
         [TestMethod]
         public async Task AddWish_EmptyWishWithWishlistId_ReturnWishId()
@@ -164,6 +163,77 @@ namespace Gifter.Services.Tests
 
             //Assert
             Assert.IsNull(operationResult.Data);
+        }
+
+        [TestMethod]
+        public async Task UpdateWish_Wish_ReturnUpdatedWish()
+        {
+            //Arrange
+            DbContext.Wishlists.Add(new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                DirectoryName = "avavreghv",
+                Wishes = new List<Wish>() {
+                    new Wish() {
+                        Name = "Wish 1",
+                        Price = 9999,
+                        URL = "www.wish1.com"
+                    }
+                }
+            });
+
+            DbContext.SaveChanges();
+
+            var updatedWish = new WishDTO()
+            {
+                Id = 1,
+                Name = "new wish",
+                Price = 2222,
+                Link = "www.newwish1.com"
+            };
+
+            //Act
+            var operationResult = await wishService.UpdateAsync(updatedWish, UserId);
+
+            //Assert
+            Assert.IsTrue(operationResult.Status == OperationStatus.SUCCESS);
+            Assert.AreEqual(operationResult.Data.Name, updatedWish.Name);
+            Assert.AreEqual(operationResult.Data.Price, updatedWish.Price);
+            Assert.AreEqual(operationResult.Data.Link, updatedWish.Link);
+        }
+
+        [TestMethod]
+        public async Task UpdateWish_WishDoesNotExist_ReturnFailResponse()
+        {
+            //Arrange
+            DbContext.Wishlists.Add(new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                DirectoryName = "avavreghv",
+                Wishes = new List<Wish>() {
+                    new Wish() {
+                        Name = "Wish 1",
+                        Price = 9999,
+                        URL = "www.wish1.com"
+                    }
+                }
+            });
+
+            DbContext.SaveChanges();
+
+            var updatedWish = new WishDTO()
+            {
+                Id = 1143234,
+            };
+
+            //Act
+            var operationResult = await wishService.UpdateAsync(updatedWish, UserId);
+
+            //Assert
+            Assert.IsTrue(operationResult.Status == OperationStatus.FAIL);
+            Assert.AreEqual(operationResult.Message, $"Wish with id = {updatedWish.Id} not found.");
         }
     }
 }
