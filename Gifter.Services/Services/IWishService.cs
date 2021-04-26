@@ -19,7 +19,7 @@ namespace Gifter.Services.Services
 
         Task<OperationResult<WishDTO>> AddAsync(AddWishDTO addWishDTO, string userId);
 
-        Task<OperationResult<WishDTO>> UpdateAsync(WishDTO wishDTO, string userId);
+        Task<OperationResult<UpdateWishDTO>> UpdateAsync(UpdateWishDTO wishDTO, string userId);
 
         Task<OperationResult<WishDTO>> GetAsync(int id, string userId);
     }

@@ -1,4 +1,5 @@
 ﻿using Gifter.Extensions;
+using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ namespace Gifter.Controllers
         {
             var operationResult = await wishService.DeleteAsync(id, this.HttpContext.User.SubjectId());
 
-            return operationResult.Data ? Ok(operationResult) : NotFound(operationResult);
+            return operationResult.Status == OperationStatus.SUCCESS ? Ok(operationResult) : NotFound(operationResult);
         }
 
         [HttpGet("{id:int}")]
@@ -37,7 +38,7 @@ namespace Gifter.Controllers
         {
             var operationResult = await wishService.GetAsync(id, this.HttpContext.User.SubjectId());
 
-            return operationResult.Data != null ? Ok(operationResult) : NotFound(operationResult);
+            return operationResult.Status == OperationStatus.SUCCESS? Ok(operationResult) : NotFound(operationResult);
         }
 
         [HttpPost]
@@ -45,9 +46,19 @@ namespace Gifter.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Post([FromBody] AddWishDTO wishDTO)
         {
-            var OperationResult = await wishService.AddAsync(wishDTO, this.HttpContext.User.SubjectId());
+            var operationResult = await wishService.AddAsync(wishDTO, this.HttpContext.User.SubjectId());
 
-            return OperationResult.Data != null ? CreatedAtAction(nameof(Get), new { id = OperationResult.Data.Id }, OperationResult) : NotFound(OperationResult);
+            return operationResult.Status == OperationStatus.SUCCESS? CreatedAtAction(nameof(Get), new { id = operationResult.Data.Id }, operationResult) : NotFound(operationResult);
+        }
+
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Put([FromBody] UpdateWishDTO wishDTO)
+        {
+            var operationResult = await wishService.UpdateAsync(wishDTO, this.HttpContext.User.SubjectId());
+
+            return operationResult.Status == OperationStatus.SUCCESS ? Ok(operationResult): NotFound(operationResult);
         }
     }
 }

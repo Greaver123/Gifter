@@ -185,12 +185,12 @@ namespace Gifter.Services.Tests
 
             DbContext.SaveChanges();
 
-            var updatedWish = new WishDTO()
+            var updatedWish = new UpdateWishDTO()
             {
                 Id = 1,
                 Name = "new wish",
                 Price = 2222,
-                Link = "www.newwish1.com"
+                URL = "www.newwish1.com"
             };
 
             //Act
@@ -200,7 +200,7 @@ namespace Gifter.Services.Tests
             Assert.IsTrue(operationResult.Status == OperationStatus.SUCCESS);
             Assert.AreEqual(operationResult.Data.Name, updatedWish.Name);
             Assert.AreEqual(operationResult.Data.Price, updatedWish.Price);
-            Assert.AreEqual(operationResult.Data.Link, updatedWish.Link);
+            Assert.AreEqual(operationResult.Data.URL, updatedWish.URL);
         }
 
         [TestMethod]
@@ -223,7 +223,7 @@ namespace Gifter.Services.Tests
 
             DbContext.SaveChanges();
 
-            var updatedWish = new WishDTO()
+            var updatedWish = new UpdateWishDTO()
             {
                 Id = 1143234,
             };

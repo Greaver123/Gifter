@@ -147,7 +147,14 @@ namespace Gifter.Services.Services
             };
         }
 
-        public async Task<OperationResult<WishDTO>> UpdateAsync(WishDTO wishDTO, string userId)
+
+        /// <summary>
+        /// Gets wish for given id.
+        /// </summary>
+        /// <param name="wishDTO">Wish to be edited</param>
+        /// <param name="userId">Id of user.</param>
+        /// <returns>Operation result Success, when Wish with given id succesfully update. Otherwise operation result Fail</returns>
+        public async Task<OperationResult<UpdateWishDTO>> UpdateAsync(UpdateWishDTO wishDTO, string userId)
         {
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
             
@@ -156,7 +163,7 @@ namespace Gifter.Services.Services
                 .ThenInclude(wl => wl.User)
                 .FirstOrDefaultAsync(w => w.Id == wishDTO.Id && w.WishList.User.Auth0Id == userId);
             
-            if(wish == null) return new OperationResult<WishDTO>()
+            if(wish == null) return new OperationResult<UpdateWishDTO>()
             {
                 Status = OperationStatus.FAIL,
                 Message = $"{nameof(Wish)} with id = {wishDTO.Id} not found.",
@@ -165,7 +172,7 @@ namespace Gifter.Services.Services
 
             wish.Name = wishDTO.Name;
             wish.Price = wishDTO.Price;
-            wish.URL = wishDTO.Link;
+            wish.URL = wishDTO.URL;
 
             try
             {
@@ -175,7 +182,7 @@ namespace Gifter.Services.Services
             {
                 if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
                 {
-                    return new OperationResult<WishDTO>()
+                    return new OperationResult<UpdateWishDTO>()
                     {
                         Status = OperationStatus.ERROR,
                         Message = MessageHelper.CreateOperationErrorMessage(nameof(Wish), OperationType.delete),
@@ -186,16 +193,15 @@ namespace Gifter.Services.Services
                 throw;
             }
 
-            return new OperationResult<WishDTO>()
+            return new OperationResult<UpdateWishDTO>()
             {
                 Status = OperationStatus.SUCCESS,
-                Data = new WishDTO()
+                Data = new UpdateWishDTO()
                 {
                     Id = wish.Id,
                     Name = wish.Name,
-                    Link = wish.URL,
+                    URL = wish.URL,
                     Price = wish.Price,
-                    ImageId = wish.Image?.Id
                 },
             };
         }
