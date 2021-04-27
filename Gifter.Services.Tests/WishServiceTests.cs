@@ -9,6 +9,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using Gifter.Services.Mapper;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace Gifter.Services.Tests
 {
@@ -19,7 +23,13 @@ namespace Gifter.Services.Tests
 
         public WishServiceTests() : base()
         {
-            wishService = new WishService(DbContext, new FilesService(DbContext, StoreOptions));
+            wishService = new WishService(
+                DbContext, 
+                new FilesService(DbContext, StoreOptions),
+                new AutoMapper.Mapper(
+                    new MapperConfiguration(cfg => {
+                        cfg.AddProfile<GifterProfile>(); 
+                    })));
         }
 
         [TestMethod]
@@ -234,6 +244,42 @@ namespace Gifter.Services.Tests
             //Assert
             Assert.IsTrue(operationResult.Status == OperationStatus.FAIL);
             Assert.AreEqual(operationResult.Message, $"Wish with id = {updatedWish.Id} not found.");
+        }
+
+        [TestMethod]
+        public async Task PatchWish_WishReplace_ReturnUpdatedWish()
+        {
+            //Arrange
+            DbContext.Wishlists.Add(new WishList()
+            {
+                UserId = 1,
+                Name = "Wishlist 1",
+                DirectoryName = "avavreghv",
+                Wishes = new List<Wish>() {
+                    new Wish() {
+                        Name = "Wish 1",
+                        Price = 9999,
+                        URL = "www.wish1.com"
+                    }
+                }
+            });
+
+            DbContext.SaveChanges();
+
+            var jsonPatchDocument = new JsonPatchDocument<UpdateWishDTO>();
+            jsonPatchDocument.Replace((w) => w.Name, "new wishlist name");
+            jsonPatchDocument.Replace((w) => w.Price, 4444);
+            jsonPatchDocument.Replace((w) => w.URL, "www.newurl.com");
+
+
+            //Act
+            var operationResult = await wishService.PatchAsync(1,jsonPatchDocument, UserId);
+
+            //Assert
+            Assert.IsTrue(operationResult.Status == OperationStatus.SUCCESS);
+            Assert.AreEqual(operationResult.Data.Name, "new wishlist name");
+            Assert.AreEqual(operationResult.Data.Price, 4444);
+            Assert.AreEqual(operationResult.Data.URL, "www.newurl.com");
         }
     }
 }

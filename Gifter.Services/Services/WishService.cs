@@ -1,10 +1,12 @@
-﻿using Gifter.Common;
+﻿using AutoMapper;
+using Gifter.Common;
 using Gifter.DataAccess;
 using Gifter.DataAccess.Models;
 using Gifter.Services.Common;
 using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Helpers;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
@@ -16,11 +18,13 @@ namespace Gifter.Services.Services
     {
         private readonly GifterDbContext dbContext;
         private readonly IFilesService filesService;
+        private readonly IMapper mapper;
 
-        public WishService(GifterDbContext dbContext, IFilesService filesService)
+        public WishService(GifterDbContext dbContext, IFilesService filesService, IMapper mapper)
         {
             this.dbContext = dbContext;
             this.filesService = filesService;
+            this.mapper = mapper;
         }
 
         /// <summary>
@@ -157,13 +161,13 @@ namespace Gifter.Services.Services
         public async Task<OperationResult<UpdateWishDTO>> UpdateAsync(UpdateWishDTO wishDTO, string userId)
         {
             Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
-            
+
             var wish = await dbContext.Wishes
                 .Include(w => w.WishList)
                 .ThenInclude(wl => wl.User)
                 .FirstOrDefaultAsync(w => w.Id == wishDTO.Id && w.WishList.User.Auth0Id == userId);
-            
-            if(wish == null) return new OperationResult<UpdateWishDTO>()
+
+            if (wish == null) return new OperationResult<UpdateWishDTO>()
             {
                 Status = OperationStatus.FAIL,
                 Message = $"{nameof(Wish)} with id = {wishDTO.Id} not found.",
@@ -186,6 +190,64 @@ namespace Gifter.Services.Services
                     {
                         Status = OperationStatus.ERROR,
                         Message = MessageHelper.CreateOperationErrorMessage(nameof(Wish), OperationType.delete),
+                        Data = null
+                    };
+                }
+
+                throw;
+            }
+
+            return new OperationResult<UpdateWishDTO>()
+            {
+                Status = OperationStatus.SUCCESS,
+                Data = new UpdateWishDTO()
+                {
+                    Id = wish.Id,
+                    Name = wish.Name,
+                    URL = wish.URL,
+                    Price = wish.Price,
+                },
+            };
+        }
+
+        /// <summary>
+        /// Gets wish for given id.
+        /// </summary>
+        /// <param name="wishId">Id of wish.</param>
+        /// <param name="wishPatch">patch object for wish.</param>
+        /// <param name="userId">Id of user.</param>
+        /// <returns>Operation result Success, when Wish with given id succesfully update. Otherwise operation result Fail</returns>
+        public async Task<OperationResult<UpdateWishDTO>> PatchAsync(int wishId, JsonPatchDocument<UpdateWishDTO> wishPatch, string userId)
+        {
+            Guard.IsNullEmptyOrWhiteSpace(userId, nameof(userId));
+
+            var wish = await dbContext.Wishes
+                .Include(w => w.WishList)
+                .ThenInclude(wl => wl.User)
+                .FirstOrDefaultAsync(w => w.Id == wishId && w.WishList.User.Auth0Id == userId);
+
+            if (wish == null) return new OperationResult<UpdateWishDTO>()
+            {
+                Status = OperationStatus.FAIL,
+                Message = $"{nameof(Wish)} with id = {wishId} not found.",
+                Data = null
+            };
+
+            try
+            {
+                var wishJsonPatch = mapper.Map<JsonPatchDocument<Wish>>(wishPatch);
+                wishJsonPatch.ApplyTo(wish);
+
+                await dbContext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
+                {
+                    return new OperationResult<UpdateWishDTO>()
+                    {
+                        Status = OperationStatus.ERROR,
+                        Message = MessageHelper.CreateOperationErrorMessage(nameof(Wish), OperationType.update),
                         Data = null
                     };
                 }

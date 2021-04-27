@@ -1,6 +1,6 @@
 ﻿using Gifter.Services.Common;
 using Gifter.Services.DTOS.Wish;
-using Gifter.Services.DTOS.Wishlist;
+using Microsoft.AspNetCore.JsonPatch;
 using System.Threading.Tasks;
 
 namespace Gifter.Services.Services
@@ -22,5 +22,7 @@ namespace Gifter.Services.Services
         Task<OperationResult<UpdateWishDTO>> UpdateAsync(UpdateWishDTO wishDTO, string userId);
 
         Task<OperationResult<WishDTO>> GetAsync(int id, string userId);
+
+        Task<OperationResult<UpdateWishDTO>> PatchAsync(int wishId, JsonPatchDocument<UpdateWishDTO> wishPatch, string userId);
     }
 }

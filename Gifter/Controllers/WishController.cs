@@ -4,6 +4,7 @@ using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -59,6 +60,16 @@ namespace Gifter.Controllers
             var operationResult = await wishService.UpdateAsync(wishDTO, this.HttpContext.User.SubjectId());
 
             return operationResult.Status == OperationStatus.SUCCESS ? Ok(operationResult): NotFound(operationResult);
+        }
+
+        [HttpPatch("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Patch([FromRoute]int id, [FromBody] JsonPatchDocument<UpdateWishDTO> patchWishDocument)
+        {
+            var operationResult = await wishService.PatchAsync(id, patchWishDocument, this.HttpContext.User.SubjectId());
+
+            return operationResult.Status == OperationStatus.SUCCESS ? Ok(operationResult) : NotFound(operationResult);
         }
     }
 }

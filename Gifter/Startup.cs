@@ -2,6 +2,7 @@ using Gifter.Common.Options;
 using Gifter.DataAccess;
 using Gifter.Services.Common;
 using Gifter.Services.Constants;
+using Gifter.Services.Mapper;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -31,13 +32,20 @@ namespace Gifter
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
-            services.AddControllersWithViews();
+            //DB
             services.AddDbContext<GifterDbContext>(options => options.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Test"));
+
+            //Mapper
+            services.AddAutoMapper(typeof(GifterProfile));
+
+            //Services
             services.AddScoped<IWishlistService, WishlistService>();
             services.AddScoped<IImageService, ImageService>();
             services.AddScoped<IFilesService, FilesService>();
             services.AddScoped<IWishService, WishService>();
+            
+            //Configuration
+            services.AddControllersWithViews().AddNewtonsoftJson();
             services.AddOptions<StoreOptions>().Bind(Configuration.GetSection(StoreOptions.Store));
             services.Configure<ApiBehaviorOptions>(apiBevaviorOptions =>
             {
