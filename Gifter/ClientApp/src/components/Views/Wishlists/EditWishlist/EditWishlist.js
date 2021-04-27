@@ -245,13 +245,24 @@ class EditWishlist extends Component {
   saveWish = async (id) => {
     console.log('SAVE WISH');
     try {
+      const { getAccessTokenSilently } = this.props.auth0;
+      const token = await getAccessTokenSilently();
+
       let wish = this.state.wishes.find((w) => w.id === id);
       if (!wish) return;
       console.log(wish);
-      let response = await axiosDevInstance.put('wish/', {
-        wishlistId: this.state.id,
-        name: wish.name,
-      });
+      let response = await axiosDevInstance.put(
+        'wish/',
+        {
+          id: id,
+          name: wish.name,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       return response;
     } catch (err) {

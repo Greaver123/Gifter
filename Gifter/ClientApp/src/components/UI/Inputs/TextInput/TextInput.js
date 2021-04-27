@@ -4,7 +4,7 @@ import InputToolbar from './InputToolbar/InputToolbar';
 
 class TextInput extends React.Component {
   inputRef = createRef();
-
+  interval = null;
   state = {
     toolbar: false,
     isHandlingRequest: false,
@@ -12,20 +12,20 @@ class TextInput extends React.Component {
     error: false,
   };
 
-  focusIn = (e) => {
+  focusIn = () => {
     this.setState({ focused: true });
   };
 
-  focusOut = (e) => {
-    if (this.props.value !== '') return;
-
-    setTimeout(() => {
-      if (this.state.isHandlingRequest || this.state.error) {
+  focusOut = () => {
+    let interval = setInterval(() => {
+      if (this.state.isHandlingRequest) return;
+      if (this.state.error) {
         this.setState({ error: false });
         return;
       }
       this.setState({ focused: false, toolbar: false });
-    }, 100);
+      clearInterval(interval);
+    }, 200);
   };
 
   showTooblar = () => {
@@ -52,7 +52,7 @@ class TextInput extends React.Component {
       this.setState({ error: true });
     } finally {
       this.setState({ isHandlingRequest: false });
-      this.inputRef.current.focus();
+      // this.inputRef.current.focus();
     }
   };
 
@@ -80,28 +80,6 @@ class TextInput extends React.Component {
     if (e.key !== 'Enter') return;
     await this.save();
   };
-
-  componentDidMount() {
-    // console.dir(this.inputRef.current);
-    // this.inputRef.current.parentElement.addEventListener(
-    //   'click',
-    //   function (e) {
-    //     console.log(e.target.closest(`.${classes.TextInput}`));
-    //     if (!e.target.closest(`.${classes.TextInput}`)) return;
-    //     console.log('click');
-    //     this.inputRef.current.focus();
-    //     // this.setState({ focused: false, toolbar: false });
-    //   }.bind(this)
-    // );
-    // document.addEventListener(
-    //   'keydown',
-    //   function (e) {
-    //     console.log(e.key);
-    //     if (e.key === 'Tab') console.log('tab');
-    //     this.setState({ focused: false, toolbar: false });
-    //   }.bind(this)
-    // );
-  }
 
   render() {
     return (
