@@ -7,6 +7,7 @@ using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Helpers;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
@@ -242,14 +243,19 @@ namespace Gifter.Services.Services
             }
             catch (Exception ex)
             {
-                if (ex is DbUpdateException || ex is DbUpdateConcurrencyException)
+                var operationResult = new OperationResult<UpdateWishDTO>()
                 {
-                    return new OperationResult<UpdateWishDTO>()
-                    {
-                        Status = OperationStatus.ERROR,
-                        Message = MessageHelper.CreateOperationErrorMessage(nameof(Wish), OperationType.update),
-                        Data = null
-                    };
+                    Status = OperationStatus.ERROR,
+                    Message = MessageHelper.CreateOperationErrorMessage(nameof(Wish), OperationType.update),
+                    Data = null
+                };
+
+                if (ex is DbUpdateException || ex is DbUpdateConcurrencyException) return operationResult;
+                else if (ex is JsonPatchException)
+                {
+                    operationResult.Message = "Invalid patch request body." + ex.Message;
+                    operationResult.Status = OperationStatus.FAIL;
+                    return operationResult;
                 }
 
                 throw;

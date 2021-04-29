@@ -1,7 +1,9 @@
 using Gifter.Common.Options;
 using Gifter.DataAccess;
+using Gifter.Filters;
 using Gifter.Services.Common;
 using Gifter.Services.Constants;
+using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Mapper;
 using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -43,6 +45,9 @@ namespace Gifter
             services.AddScoped<IImageService, ImageService>();
             services.AddScoped<IFilesService, FilesService>();
             services.AddScoped<IWishService, WishService>();
+
+            //Validation Filters
+            services.AddScoped<ValidatePatchFilter<UpdateWishDTO>>();
             
             //Configuration
             services.AddControllersWithViews().AddNewtonsoftJson();

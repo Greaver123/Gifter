@@ -1,4 +1,5 @@
 ﻿using Gifter.Extensions;
+using Gifter.Filters;
 using Gifter.Services.Constants;
 using Gifter.Services.DTOS.Wish;
 using Gifter.Services.Services;
@@ -62,6 +63,7 @@ namespace Gifter.Controllers
             return operationResult.Status == OperationStatus.SUCCESS ? Ok(operationResult): NotFound(operationResult);
         }
 
+        [ServiceFilter(typeof(ValidatePatchFilter<UpdateWishDTO>))]
         [HttpPatch("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
