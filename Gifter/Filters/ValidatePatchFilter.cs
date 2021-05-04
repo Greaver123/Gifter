@@ -5,54 +5,68 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using System.Collections.Generic;
 
-namespace Gifter.Filters
-{
+namespace Gifter.Filters { 
+
+    /// <summary>
+    /// Validation filter for patch requets.
+    /// </summary>
+    /// <typeparam name="TModel">Type of model for JsonPatchDocument</typeparam>
     public class ValidatePatchFilter<TModel>: IActionFilter where TModel: class 
     {
         public void OnActionExecuted(ActionExecutedContext context)
         {
+
         }
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            var patchDocument = context.ActionArguments["patchWishDocument"] as JsonPatchDocument<TModel>;
+            JsonPatchDocument<TModel> patchDocument = null;
+            
+            foreach (var arg in context.ActionArguments)
+            {
+                if(arg.Value is JsonPatchDocument<TModel>) patchDocument = arg.Value as JsonPatchDocument<TModel>;
+            }
+
             if (patchDocument == null) return;
+
+            var counter = 0;
+            var operationResult = new OperationResult<object>() { 
+                Message = "Invalid patch request body.", 
+                Status = Gifter.Services.Constants.OperationStatus.FAIL};
+            var isValid = true;
 
             foreach (var operation in patchDocument.Operations)
             {
-                var errors = new List<string>();
-                if (string.IsNullOrWhiteSpace(operation.op)) errors.Add(nameof(operation.op));
-                if (string.IsNullOrWhiteSpace(operation.path)) errors.Add(nameof(operation.path));
+                var key = $"[{counter}]_{operation.OperationType}";
+                var errorsList = new List<string>();
 
                 switch (operation.OperationType)
                 {
                     case OperationType.Replace:
                     case OperationType.Add:
                     case OperationType.Test:
-                        if (operation.value == null) errors.Add(nameof(operation.value));
+                        if (operation.value == null) errorsList.Add($"\'{nameof(operation.value)}\' cannot be null or empty.");
+                        if (operation.path == null) errorsList.Add($"\'{nameof(operation.path)}\' cannot be null or empty.");
                         break;
                     case OperationType.Move:
                     case OperationType.Copy:
-                        if (string.IsNullOrWhiteSpace(operation.from)) errors.Add(nameof(operation.from));
+                        if (operation.path == null) errorsList.Add($"\'{nameof(operation.path)}\' cannot be null or empty.");
+                        if (string.IsNullOrWhiteSpace(operation.from)) errorsList.Add($"\'{nameof(operation.from)}\' cannot be null or empty.");
+                        break;
+                    case OperationType.Invalid:
+                        errorsList.Add($"Invalid operation type.");
                         break;
                 }
 
-
-                var errorMessage = "Invalid patch request body. ";
-                foreach (var prop in errors)
+                if(errorsList.Count > 0)
                 {
-                    errorMessage += $"\'{prop}\' cannot be null or empty.\n";
+                    operationResult.Errors.Add(key, errorsList);
+                    isValid = false;
                 }
-
-                if (errors.Count > 0)
-                {
-                    var operationResult = new OperationResult<object>();
-                    operationResult.Message = errorMessage;
-                    operationResult.Status = Gifter.Services.Constants.OperationStatus.FAIL;
-
-                    context.Result = new BadRequestObjectResult(operationResult);
-                }
+                counter++;
             }
+
+            if (!isValid) context.Result = new BadRequestObjectResult(operationResult);
         }
     }
 }
