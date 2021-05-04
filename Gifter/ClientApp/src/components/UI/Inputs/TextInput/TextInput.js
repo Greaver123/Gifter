@@ -38,10 +38,10 @@ class TextInput extends React.Component {
 
   save = async () => {
     try {
-      if (this.props.value === '') {
-        this.setState({ focused: false, toolbar: false });
-        return;
-      }
+      // if (this.props.value === '') {
+      //   this.setState({ focused: false, toolbar: false });
+      //   return;
+      // }
       this.inputRef.current.focus();
       this.setState({ isHandlingRequest: true });
       await this.props.onSaveClick();
@@ -58,13 +58,9 @@ class TextInput extends React.Component {
 
   delete = async () => {
     try {
-      if (this.props.value === '') {
-        this.setState({ focused: false, toolbar: false });
-        return;
-      }
       this.inputRef.current.focus();
       this.setState({ isHandlingRequest: true });
-      await this.props.onSaveClick();
+      await this.props.onDeleteclick();
       this.setState({ focused: false, toolbar: false });
     } catch (ex) {
       alert('Could not Delete data. Please try again.');

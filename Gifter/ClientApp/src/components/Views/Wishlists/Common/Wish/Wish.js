@@ -21,7 +21,16 @@ const Wish = (props) => {
           value={props.name}
           onChange={props.changed}
           disabled={props.displayOnly}
-          onSaveClick={props.saveWish}
+          onSaveClick={() =>
+            props.patchWish(props.id, 'name', {
+              op: 'replace',
+              path: '/name',
+              value: props.name,
+            })
+          }
+          onDeleteclick={() =>
+            props.patchWish(props.id, 'name', { op: 'remove', path: '/name' })
+          }
         />
         <TextInput
           name="price"

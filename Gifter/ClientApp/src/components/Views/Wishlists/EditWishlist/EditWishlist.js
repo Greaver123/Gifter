@@ -242,6 +242,37 @@ class EditWishlist extends Component {
     }
   };
 
+  patchWish = async (id, property, patchOperation) => {
+    try {
+      const { getAccessTokenSilently } = this.props.auth0;
+      const token = await getAccessTokenSilently();
+
+      let wish = this.state.wishes.find((w) => w.id === id);
+      if (!wish) return;
+
+      let response = await axiosDevInstance.patch(
+        `wish/${id}`,
+        [patchOperation],
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (patchOperation.op == 'remove') {
+        // clean state from removed value
+        const updatedWishes = cloneDeep(this.state.wishes);
+        updatedWishes.find((w) => w.id == id)[property] = '';
+        this.setState({ wishes: updatedWishes });
+      }
+
+      return response;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   saveWish = async (id) => {
     console.log('SAVE WISH');
     try {
@@ -277,6 +308,7 @@ class EditWishlist extends Component {
           key={wish.id}
           {...wish}
           saveWish={this.saveWish.bind(this, wish.id)}
+          patchWish={this.patchWish.bind(this)}
           deleteWish={this.deleteWish.bind(this, wish.id)}
           changed={this.onInputChange}
           fetchImage={this.fetchImage.bind(this, wish.imageId)}
