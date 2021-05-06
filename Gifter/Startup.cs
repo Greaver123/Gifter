@@ -9,6 +9,7 @@ using Gifter.Services.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -34,6 +35,15 @@ namespace Gifter
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Cors
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy( policy =>
+                {
+                    policy.WithOrigins("https://192.168.1.32:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+                });
+            });
+
             //DB
             services.AddDbContext<GifterDbContext>(options => options.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=Test"));
 
@@ -96,17 +106,6 @@ namespace Gifter
                 options.Audience = Configuration["Auth0:Audience"];
             });
 
-            services.AddCors(options =>
-            {
-                // this defines a CORS policy called "default"
-                options.AddPolicy("default", policy =>
-                {
-                    policy.WithOrigins("http://localhost:3000", "https://localhost:3000")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
-                });
-            });
-
             services.AddSwaggerGen(c =>
             {
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
@@ -150,7 +149,7 @@ namespace Gifter
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                //app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(
                     c =>
@@ -171,7 +170,7 @@ namespace Gifter
             app.UseSpaStaticFiles();
 
             app.UseRouting();
-            app.UseCors("default");
+            app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -180,6 +179,11 @@ namespace Gifter
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
+                
+                endpoints.MapGet("/{*url}", async context =>
+                {
+                    context.Response.Redirect("/swagger");
+                });
             });
 
             app.UseSpa(spa =>
@@ -189,7 +193,7 @@ namespace Gifter
                 if (env.IsDevelopment())
                 {
                     //spa.UseReactDevelopmentServer(npmScript: "start");
-                    spa.UseProxyToSpaDevelopmentServer("http://localhost:3000");
+                    spa.UseProxyToSpaDevelopmentServer("https://localhost:3000");
                 }
             });
         }
