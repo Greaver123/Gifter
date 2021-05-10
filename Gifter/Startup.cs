@@ -40,7 +40,7 @@ namespace Gifter
             {
                 options.AddDefaultPolicy( policy =>
                 {
-                    policy.WithOrigins("https://192.168.1.32:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+                    policy.WithOrigins("http://192.168.1.32:3000","https://192.168.1.32:3000","https://localhost:3000", "http://localhost:3000").AllowAnyMethod().AllowAnyHeader();
                 });
             });
 
