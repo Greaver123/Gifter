@@ -14,19 +14,17 @@
 }
 
 .WishDeleteBtn {
-  align-self: center;
   position: absolute;
+  top: 5px;
+  right: 5px;
   width: 32px !important;
   height: 32px !important;
-  margin-top: 10px;
-  margin-left: 92%;
   color: rgb(255, 0, 0) !important;
   transition: color 0.5s;
 }
 
 .WishDeleteBtn:hover {
   color: rgb(200, 0, 0) !important;
-
   cursor: pointer;
 }
 
